@@ -1,0 +1,53 @@
+// step-icon
+
+@mixin stem-img($width:24px) {
+  display: inline-block;
+  background-size: 100% 100%;
+  width: $width;
+  height: $width;
+}
+
+
+.step-tag {
+  background: url("../assets/step-tag.png") no-repeat center;
+  @include stem-img;
+}
+
+.step-start {
+  background: url("../assets/step-start.png") no-repeat center;
+  @include stem-img;
+}
+
+.step-end {
+  background: url("../assets/step-end.png") no-repeat center;
+  @include stem-img;
+}
+
+
+.step-if {
+  background: url("../assets/step-if.png") no-repeat center;
+  @include stem-img(30px);
+}
+
+.step-expand {
+  background: url("../assets/step-expand.png") no-repeat center;
+  @include stem-img(30px);
+}
+
+.step-merge {
+  background: url("../assets/step-merge.png") no-repeat center;
+  @include stem-img(30px);
+}
+
+
+.step-start2 {
+  background: url("../assets/step-start2.png") no-repeat center;
+  @include stem-img(25px);
+}
+
+.step-stop {
+  background: url("../assets/step-stop.png") no-repeat center;
+  @include stem-img(25px);
+}
+
+
