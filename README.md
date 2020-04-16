@@ -2,9 +2,10 @@
 
 基于 sortablejs 和 jsplumb.js 实现的 workflow。
 
-- 支持节点，
+- 支持页面布局缩放
+- 支持节点
 - 支持if else  
-- 支持多分支。
+- 支持多分支
 
  
 # 部分截图
