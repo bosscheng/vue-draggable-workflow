@@ -1,12 +1,16 @@
 {
-  "name": "workflow",
+  "name": "vue-draggable-workflow",
   "version": "0.1.0",
   "private": true,
   "description": "vue draggable workflow by jsplumb",
+  "bin": {
+    "deploy": "build/deploy.sh"
+  },
   "scripts": {
     "serve": "vue-cli-service --open serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "deploy": "npm run deploy"
   },
   "dependencies": {
     "core-js": "^3.6.4",
