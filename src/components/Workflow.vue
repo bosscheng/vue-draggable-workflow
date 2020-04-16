@@ -660,6 +660,12 @@
                     this.movedFlowItem = $to;
                     addClass($to, 'is-active');
                 }
+                // change target item
+                else if (this.movedFlowItem && this.movedFlowItem !== $to) {
+                    removeClass(this.movedFlowItem, 'is-active');
+                    this.movedFlowItem = $to;
+                    addClass($to, 'is-active');
+                }
             },
 
             //
@@ -685,9 +691,13 @@
                 };
             },
 
-            handleFlowMoveEnd() {
-                removeClass(this.movedFlowItem, 'is-active');
+            handleFlowMoveEnd(evt) {
+                const originalEvent = evt.originalEvent;
                 if (this.movedFlowItem) {
+                    removeClass(this.movedFlowItem, 'is-active');
+                    if (originalEvent.toElement !== this.movedFlowItem) {
+                        return;
+                    }
                     let obj = {
                         flowItemType: this.movingFlowItem.type,
                         flowUuid: this.movedFlowItem.id,

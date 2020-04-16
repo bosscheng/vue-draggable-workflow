@@ -63,7 +63,7 @@
         methods: {
 
             updateData(tempItem) {
-                this.tempItem.stepName = tempItem.stepName;
+                this.tempItem = tempItem;
             },
 
             validateFormData() {
@@ -73,8 +73,6 @@
                             reject();
                             return;
                         }
-
-
                         resolve();
                     });
                 });
