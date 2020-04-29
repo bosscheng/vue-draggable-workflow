@@ -79,18 +79,16 @@
                                 </template>
                                 <!--  temp node -->
                                 <template v-if="flowItem.groupType === flowTypeConstant.temp ">
-                                    <draggable class="flow-item node-temp"
+                                    <draggable class="flow-item node-temp node-temp-img"
                                                ref="tempNode"
                                                :id="flowItem.uuid"
                                                :group="{name:'sortable', pull:false, put: true }">
-                                        <div class="node-temp-img"></div>
                                     </draggable>
                                 </template>
                             </div>
                         </div>
                     </template>
                 </div>
-
             </div>
             <!-- sidebar-->
             <div class="flow-editor-sidebar">
@@ -696,6 +694,8 @@
                 if (this.movedFlowItem) {
                     removeClass(this.movedFlowItem, 'is-active');
                     if (originalEvent.toElement !== this.movedFlowItem) {
+                        this.movedFlowItem = undefined;
+                        this.movingFlowItem = undefined;
                         return;
                     }
                     let obj = {
