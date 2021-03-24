@@ -7,9 +7,17 @@
 - 支持if else  
 - 支持多分支
 
+
+## 功能
+
+- [ ] 自动对齐
+- [ ] 清空数据
+- [x] 获取JSON数据
+
  
 # 部分截图
 
 <img src="./images/1.png"></img>
 <img src="./images/2.png"></img>
 <img src="./images/3.png"></img>
+<img src="./images/4.png"></img>

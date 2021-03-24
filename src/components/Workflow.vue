@@ -1,6 +1,23 @@
 <template>
     <div class="flow-layout">
         <div class="flow-editor">
+            <div class="flow-tools">
+                <el-tooltip class="item" effect="dark" content="自动排列" placement="top-start">
+                    <div class="tool-item" title="" @click="handleSort">
+                        <span class="icon-duiqi"></span>
+                    </div>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="清空" placement="top-start">
+                    <div class="tool-item" @click="handleClear">
+                        <span class="icon-clear"></span>
+                    </div>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="获取JSON数据" placement="top-start">
+                    <div class="tool-item" @click="handleGetData">
+                        <span class="icon-json"></span>
+                    </div>
+                </el-tooltip>
+            </div>
             <!--zoom-->
             <div class="flow-zoom" :data-zoom="canvasDataRoom + '%'">
                 <div class="zoom-btn">
@@ -163,10 +180,21 @@
                    v-if="dialogObj.editType !== flowItemTypeConstant.list">确 定</el-button>
       </span>
         </el-dialog>
+
+        <el-dialog
+                title="JSON数据"
+                :visible.sync="dialogVisible"
+                width="700px">
+            <div class="pre-show" ref="preShow" v-if="dialogVisible"></div>
+            <span slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="dialogVisible = false">关 闭</el-button>
+          </span>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+    import JSONFormatter from 'json-formatter-js';
     import Draggable from './Draggable';
     import {FLOW_ITEM_TYPE, FLOW_ALL_LIST, FLOW_LIST, FLOW_TYPE} from "../constant";
     import {clone, uuid} from "../utils";
@@ -212,6 +240,7 @@
                     flowNextUuid: undefined
                 },
 
+                dialogVisible: false,
                 // flowStart
                 flowList: [],
                 dragConfig: dragConfig,
@@ -250,9 +279,6 @@
             }
         },
         methods: {
-            init() {
-
-            },
             //
             initFlow() {
                 let startFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.startNode);
@@ -1108,11 +1134,6 @@
                 }
             },
 
-            // move expand temp flow item
-            moveExpandTempFlowItem() {
-
-            },
-
 
             addExpandOneTempFlowItem(preFlowItem, left, expandFlowItemName) {
                 let tempFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preFlowItem.uuid, {left: left});
@@ -1235,38 +1256,6 @@
                 this.dialogObj.flowPreUuid = undefined;
             },
 
-            updateFlowItemStepCount(data) {
-                data = data || {};
-
-                Object.keys(data).forEach((id) => {
-                    let flowItem = this.getFlow(id);
-                    let flowIndex = this.getFlowIndex(id);
-
-                    if (flowItem && this.isHasStepCountFlowItem(flowItem)) {
-                        flowItem.stepCount = data[id];
-                        this.$set(this.flowList, flowIndex, flowItem);
-                    }
-                });
-            },
-
-            //
-            validateForm(formData) {
-                let result = true;
-                const steps = formData.steps;
-
-                for (let i = 0, len = steps.length; i < len; i++) {
-                    let step = steps[i];
-                    if (step.elementId !== FLOW_ITEM_TYPE.endNode) {
-                        //
-                        if (!(step.nextStep || (step.nextSteps && step.nextSteps.length > 0))) {
-                            result = false;
-                            this._message('请添加end节点');
-                            break;
-                        }
-                    }
-                }
-                return result;
-            },
 
             formatData() {
                 let result = {};
@@ -1344,15 +1333,8 @@
                         top: flowItem.top
                     };
                 });
-
-                result.positions = JSON.stringify(positionObj);
-                result.name = name;
+                result.position = positionObj;
                 result.steps = steps;
-
-
-                if (this.isUpdate) {
-                    result.id = this.editItem.id;
-                }
 
                 return result;
             },
@@ -1373,22 +1355,32 @@
 
             },
 
-            getFlowItemFormData(item) {
-                let result = clone(item);
 
-                delete result.elementId;
-                delete result.stepId;
-
-                if (result.nextStep) {
-                    delete result.nextStep;
-                }
-
-                if (result.nextSteps) {
-                    delete result.nextSteps;
-                }
-
-                return result;
+            handleSort() {
+                this.$alert('开发中。。。')
             },
+
+            handleClear() {
+                this.$confirm('确定要清空数据吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.$alert('开发中。。。')
+                }).catch(() => {
+
+                });
+            },
+
+            handleGetData() {
+                const formData = this.formatData();
+                const formatter = new JSONFormatter(formData, 3);
+                this.dialogVisible = true;
+                this.$nextTick(() => {
+                    this.$refs.preShow.appendChild(formatter.render());
+                })
+            },
+
             //
             _message(msg, type) {
                 this.$message({
@@ -1426,5 +1418,5 @@
 </script>
 
 <style lang="sass">
-    @import "../styles/workflow.scss";
+    @import "../styles/workflow.scss"
 </style>

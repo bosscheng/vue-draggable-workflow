@@ -465,7 +465,7 @@
 .flow-tools {
   position: absolute;
   box-sizing: border-box;
-  left: 10px;
+  right: 297px;
   top: 10px;
   background: rgba(255, 255, 255, 1);
   border: 1px solid rgba(242, 242, 242, 1);
@@ -567,6 +567,11 @@
 
 .text-step-count{
   color: #AA5C00;
+}
+
+.pre-show{
+  height: 500px;
+  overflow: auto;
 }
 
 

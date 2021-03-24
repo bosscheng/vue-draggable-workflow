@@ -50,4 +50,18 @@
   @include stem-img(25px);
 }
 
+.icon-duiqi {
+  background: url("../assets/icon-duiqi.png") no-repeat center;
+  @include stem-img(25px);
+}
 
+.icon-clear {
+  background: url("../assets/icon-clear.png") no-repeat center;
+  @include stem-img(25px);
+}
+
+
+.icon-json {
+  background: url("../assets/icon-json.png") no-repeat center;
+  @include stem-img(25px);
+}

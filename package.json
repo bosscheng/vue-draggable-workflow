@@ -18,7 +18,8 @@
     "element-ui": "^2.13.1",
     "sortablejs": "1.8.3",
     "jsplumb": "^2.13.1",
-    "lodash": "^4.17.19"
+    "lodash": "^4.17.19",
+    "json-formatter-js": "2.3.4"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.3.0",
