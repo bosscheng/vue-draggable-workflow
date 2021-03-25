@@ -328,11 +328,6 @@
                 });
             },
 
-            //
-            createFlowItemNum() {
-
-            },
-
             removeFlowConnection(source, target) {
                 //
                 let lines = this.$options.jsPlumb.getConnections({
@@ -626,6 +621,7 @@
                 });
             },
 
+            //
             plumbRepaintEverything() {
                 this.$nextTick(() => {
                     this.$options.jsPlumb.repaintEverything();
@@ -1366,10 +1362,23 @@
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
-                    this.$alert('开发中。。。')
+                    this.$_doClear();
                 }).catch(() => {
 
                 });
+            },
+
+            $_doClear() {
+                const startNode = _.find(this.flowList, (flowItem) => {
+                    return this.isStartFlowItem(flowItem);
+                });
+
+                if (startNode) {
+                    this.deleteNextFlowItem(startNode.uuid);
+                    this.$nextTick(()=>{
+                        this.initFlow();
+                    })
+                }
             },
 
             handleGetData() {
@@ -1394,6 +1403,14 @@
                     flowItem.type === FLOW_ITEM_TYPE.waitNode;
             },
 
+            isTempFlowItem(flowItem) {
+                return flowItem.type === FLOW_ITEM_TYPE.tempNode;
+            },
+
+            isStartFlowItem(flowItem) {
+                return flowItem.type === FLOW_ITEM_TYPE.startNode;
+            },
+
             isEndFlowItem(flowItem) {
                 return flowItem.type === FLOW_ITEM_TYPE.endNode;
             },
@@ -1410,6 +1427,7 @@
                 return this.isIfFlowItem(flowItem.type) || this.isExpandFlowItem(flowItem.type);
             },
 
+            //
             isHasStepCountFlowItem(flowItem) {
                 return flowItem.groupType === FLOW_TYPE.action || flowItem.type === FLOW_ITEM_TYPE.startNode;
             }
