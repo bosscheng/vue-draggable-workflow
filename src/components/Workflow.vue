@@ -17,6 +17,11 @@
                         <span class="icon-json"></span>
                     </div>
                 </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="网格" placement="top-start">
+                    <div class="tool-item" @click="toggleGridLine = !toggleGridLine">
+                        <span :class="toggleGridLineClass"></span>
+                    </div>
+                </el-tooltip>
             </div>
             <!--zoom-->
             <div class="flow-zoom" :data-zoom="canvasDataRoom + '%'">
@@ -32,7 +37,7 @@
                 </div>
             </div>
             <!--    canvas   -->
-            <div class="canvas-container" :data-zoom="canvasDataRoom">
+            <div class="canvas-container" :class="{'show-grid':toggleGridLine}" :data-zoom="canvasDataRoom">
                 <div id="campaignCanvas" :style="canvasRoomScaleStyle" ref="campaignCanvas">
                     <template v-for="(flowItem,index) in flowList">
                         <div class="node-content-wrap"
@@ -220,6 +225,8 @@
 
     const FLOW_LEFT_STEP_LENGTH = 80;
 
+    const FLOW_IF_OFFSET_LENGTH = 30;
+
     const FLOW_START_STEP_TOP = 30;
 
 
@@ -250,6 +257,7 @@
                 movingFlowItem: undefined, // moving
                 movedFlowItem: undefined, //  moved
                 canvasDataRoom: 100,
+                toggleGridLine: true
             }
         },
         components: {
@@ -279,6 +287,9 @@
                 return {
                     transform: 'scale(' + this.canvasDataRoom / 100 + ')'
                 };
+            },
+            toggleGridLineClass() {
+                return this.toggleGridLine ? 'icon-wangge-open' : 'icon-wangge-close';
             }
         },
         methods: {
@@ -509,6 +520,8 @@
                 for (let key in newFlowItem) {
                     tempFlowItem[key] = newFlowItem[key];
                 }
+
+
                 return tempFlowItem;
             },
 
@@ -780,7 +793,7 @@
 
             // add flow item
             handleAddFlowItem(flowItemType, tempFlowId) {
-                //
+                // update flow item
                 let newFlowItem = this.updateFlowItem(flowItemType, tempFlowId);
                 // connection label
                 this.createFlowConnectionLabel(newFlowItem.prev, newFlowItem.uuid);
@@ -790,8 +803,18 @@
                     this.addTempFlowItem(tempFlowId);
                 } else if (newFlowItem.groupType === FLOW_TYPE.condition) {
                     if (this.isIfFlowItem(flowItemType)) {
+                        const preFlowItem = this.getFlow(newFlowItem.prev[0]);
+
+                        if (this.isIfFlowItem(preFlowItem.type)) {
+                            if (preFlowItem.nextIfId === newFlowItem.uuid) {
+                                newFlowItem.left -= FLOW_IF_OFFSET_LENGTH;
+                            } else if (preFlowItem.nextElseId === newFlowItem.uuid) {
+                                newFlowItem.left += FLOW_IF_OFFSET_LENGTH;
+                            }
+                        }
                         // add if temp flow item and else temp flow item
                         this.addIfTempFlowItem(tempFlowId);
+                        this.$_plumbRepaintEverything();
                     }
                     //
                     else if (this.isExpandFlowItem(flowItemType)) {
@@ -1079,7 +1102,7 @@
                 this.addIfOneTempFlowItem(preUuid, true);
                 this.addIfOneTempFlowItem(preUuid, false);
             },
-            
+
             addIfOneTempFlowItem(preUuid, isIf) {
                 let preTempItem = this.getFlow(preUuid);
                 let leftPosition = isIf ? -FLOW_LEFT_STEP_LENGTH : FLOW_LEFT_STEP_LENGTH;
@@ -1397,8 +1420,14 @@
                         if (this.isIfFlowItem(preFlowItem.type)) {
                             if (flowItem.uuid === preFlowItem.nextIfId) {
                                 flowItem.left = preFlowItem.left - FLOW_LEFT_STEP_LENGTH;
+                                if (this.isIfFlowItem(flowItem.type)) {
+                                    flowItem.left -= FLOW_IF_OFFSET_LENGTH;
+                                }
                             } else {
                                 flowItem.left = preFlowItem.left + FLOW_LEFT_STEP_LENGTH;
+                                if (this.isIfFlowItem(flowItem.type)) {
+                                    flowItem.left += FLOW_IF_OFFSET_LENGTH;
+                                }
                             }
                         } else if (this.isExpandFlowItem(preFlowItem.type)) {
 

@@ -65,3 +65,13 @@
   background: url("../assets/icon-json.png") no-repeat center;
   @include stem-img(25px);
 }
+
+.icon-wangge-open{
+  background: url("../assets/icon-wangge-open.png") no-repeat center;
+  @include stem-img(25px);
+}
+
+.icon-wangge-close{
+  background: url("../assets/icon-wangge-close.png") no-repeat center;
+  @include stem-img(25px);
+}
