@@ -9,17 +9,24 @@
 
 
 ## 功能
-
-- [x] 辅助线hide/show
-- [ ] 初始化布局
-- [x] 自动对齐
+- [ ] 撤销
+- [ ] 初始化数据
+- [x] 网格线 hide/show
+- [x] 自动排列
 - [x] 清空数据
 - [x] 获取JSON数据
 
  
 # 部分截图
 
+<img src="./images/5.png"></img>
+
 <img src="./images/1.png"></img>
+
 <img src="./images/2.png"></img>
+
 <img src="./images/3.png"></img>
+
 <img src="./images/4.png"></img>
+
+

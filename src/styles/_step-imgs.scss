@@ -60,6 +60,11 @@
   @include stem-img(25px);
 }
 
+.icon-redo {
+  background: url("../assets/icon-redo.png") no-repeat center;
+  @include stem-img(25px);
+}
+
 
 .icon-json {
   background: url("../assets/icon-json.png") no-repeat center;
@@ -73,5 +78,10 @@
 
 .icon-wangge-close{
   background: url("../assets/icon-wangge-close.png") no-repeat center;
+  @include stem-img(25px);
+}
+
+.icon-undo{
+  background: url("../assets/icon-undo.png") no-repeat center;
   @include stem-img(25px);
 }

@@ -7,9 +7,14 @@
                         <span class="icon-duiqi"></span>
                     </div>
                 </el-tooltip>
-                <el-tooltip class="item" effect="dark" content="清空" placement="top-start">
+                <el-tooltip class="item" effect="dark" content="撤销" placement="top-start">
+                    <div class="tool-item" @click="handleUndo">
+                        <span class="icon-undo"></span>
+                    </div>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="重做" placement="top-start">
                     <div class="tool-item" @click="handleClear">
-                        <span class="icon-clear"></span>
+                        <span class="icon-redo"></span>
                     </div>
                 </el-tooltip>
                 <el-tooltip class="item" effect="dark" content="获取JSON数据" placement="top-start">
@@ -1384,7 +1389,7 @@
             },
 
             handleClear() {
-                this.$confirm('确定要清空数据吗？', '提示', {
+                this.$confirm('确定要清空数据,重做吗？', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
@@ -1393,6 +1398,10 @@
                 }).catch(() => {
 
                 });
+            },
+
+            handleUndo() {
+                this.$alert('开发中......');
             },
 
             $_updatePosition() {
