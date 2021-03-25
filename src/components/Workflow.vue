@@ -522,11 +522,16 @@
                     //  delete ifElse or expand
                     this.deleteNextFlowItem(flowItem.uuid);
                     const preFlowItem = this.getFlow(flowItem.prev[0]);
+                    // delete ifElse
                     if (this.isIfFlowItem(preFlowItem.type)) {
-                        this.$_addIfTempFlowItem(preFlowItem.uuid, preFlowItem.nextIfId === flowItem.uuid)
-                    } else if (this.isExpandFlowItem(preFlowItem.type)) {
+                        this.addIfOneTempFlowItem(preFlowItem.uuid, preFlowItem.nextIfId === flowItem.uuid)
+                    }
+                    // delete expand
+                    else if (this.isExpandFlowItem(preFlowItem.type)) {
                         //
-                        this.addTempFlowItem(flowItem.prev[0]);
+                        // this.addTempFlowItem(flowItem.prev[0]);
+                        const expandFlowItem = this.getExpandFlowItem(preFlowItem, flowItem.uuid);
+                        this.addExpandOneTempFlowItem(preFlowItem, flowItem.left, expandFlowItem.name);
                     }
                 }
             },
@@ -609,12 +614,7 @@
                             if (this.isIfFlowItem(preFlowItem.type)) {
                                 let isIf = preFlowItem.nextIfId === flowItem.uuid;
                                 //  create one flow item
-                                let tempFlowUuid = this.addIfOneTempFlowItem(preFlowItem.uuid, isIf);
-                                if (isIf) {
-                                    preFlowItem.nextIfId = tempFlowUuid;
-                                } else {
-                                    preFlowItem.nextElseId = tempFlowUuid;
-                                }
+                                this.addIfOneTempFlowItem(preFlowItem.uuid, isIf);
                             } else if (this.isExpandFlowItem(preFlowItem.type)) {
                                 // create one flow item
                                 let tempFlowUuid = this.addExpandOneTempFlowItem(preFlowItem, flowItem.left, expandFlowItem.name);
@@ -1076,33 +1076,21 @@
 
             //
             addIfTempFlowItem(preUuid) {
-                this.$_addIfTempFlowItem(preUuid, true);
-                this.$_addIfTempFlowItem(preUuid, false);
+                this.addIfOneTempFlowItem(preUuid, true);
+                this.addIfOneTempFlowItem(preUuid, false);
             },
-
-            $_addIfTempFlowItem(preUuid, isIf) {
-                let preTempItem = this.getFlow(preUuid);
-                if (isIf) {
-                    // if
-                    let tempFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, {offsetLeft: -FLOW_LEFT_STEP_LENGTH});
-                    this.draggableFlowConnect(preUuid, tempFlowUuid);
-                    this.createFlowItemLabel(preUuid, tempFlowUuid, '是');
-                    preTempItem.nextIfId = tempFlowUuid;
-                } else {
-                    //  else
-                    let tempFlowUuid2 = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, {offsetLeft: FLOW_LEFT_STEP_LENGTH});
-                    this.draggableFlowConnect(preUuid, tempFlowUuid2);
-                    this.createFlowItemLabel(preUuid, tempFlowUuid2, '否');
-                    preTempItem.nextElseId = tempFlowUuid2;
-                }
-            },
-
-
+            
             addIfOneTempFlowItem(preUuid, isIf) {
+                let preTempItem = this.getFlow(preUuid);
                 let leftPosition = isIf ? -FLOW_LEFT_STEP_LENGTH : FLOW_LEFT_STEP_LENGTH;
                 let tempFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, {offsetLeft: leftPosition});
                 this.draggableFlowConnect(preUuid, tempFlowUuid);
                 this.createFlowItemLabel(preUuid, tempFlowUuid, isIf ? '是' : '否');
+                if (isIf) {
+                    preTempItem.nextIfId = tempFlowUuid;
+                } else {
+                    preTempItem.nextElseId = tempFlowUuid;
+                }
                 return tempFlowUuid;
             },
 
