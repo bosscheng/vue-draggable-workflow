@@ -220,6 +220,9 @@
 
     const FLOW_LEFT_STEP_LENGTH = 80;
 
+    const FLOW_START_STEP_TOP = 30;
+
+
     export default {
         name: "Workflow",
         jsPlumb: null,
@@ -443,9 +446,8 @@
                     flowItem.next = [];
                     flowItem.formData = {};
                     flowItem.left = this.getFlowItemInitLeft();
-                    flowItem.top = 30;
+                    flowItem.top = FLOW_START_STEP_TOP;
                     flowItem.uuid = _uuid;
-                    flowItem.stepCount = -1;
                     //
                     if (prev) {
 
@@ -513,14 +515,19 @@
             //
             deleteFlowItem(flowItem) {
                 //
-                let index = this.getFlowIndex(flowItem.uuid);
-
                 if (this.isOnePreOneNext(flowItem) || this.isEndFlowItem(flowItem)) {
+                    let index = this.getFlowIndex(flowItem.uuid);
                     this.handleDeleteOnePrevOneNextFlowItem(flowItem, index);
                 } else if (this.isHasMoreNextFlowItem(flowItem)) {
-                    //  delete if and else
+                    //  delete ifElse or expand
                     this.deleteNextFlowItem(flowItem.uuid);
-                    this.addTempFlowItem(flowItem.prev[0]);
+                    const preFlowItem = this.getFlow(flowItem.prev[0]);
+                    if (this.isIfFlowItem(preFlowItem.type)) {
+                        this.$_addIfTempFlowItem(preFlowItem.uuid, preFlowItem.nextIfId === flowItem.uuid)
+                    } else if (this.isExpandFlowItem(preFlowItem.type)) {
+                        //
+                        this.addTempFlowItem(flowItem.prev[0]);
+                    }
                 }
             },
 
@@ -622,7 +629,7 @@
             },
 
             //
-            plumbRepaintEverything() {
+            $_plumbRepaintEverything() {
                 this.$nextTick(() => {
                     this.$options.jsPlumb.repaintEverything();
                 });
@@ -901,7 +908,7 @@
             handleAddBetweenFlowItem(options) {
                 let {flowItemType, preFlowId, nextFlowId, formData} = options;
                 // if step is if node
-                if (this.isIfFlowItem(flowItemType) || this.isExpandFlowItem(flowItemType)) {
+                if (this.isHasMoreNextFlowItemByType(flowItemType)) {
                     this.deleteNextFlowItem(nextFlowId);
                     this.$nextTick(() => {
                         let tempFlowUuid = this.addTempFlowItem(preFlowId);
@@ -1006,7 +1013,7 @@
                 // move flow
                 this.moveFlowItem(nextFlowId);
                 //
-                this.plumbRepaintEverything();
+                this.$_plumbRepaintEverything();
             },
 
 
@@ -1069,17 +1076,25 @@
 
             //
             addIfTempFlowItem(preUuid) {
+                this.$_addIfTempFlowItem(preUuid, true);
+                this.$_addIfTempFlowItem(preUuid, false);
+            },
+
+            $_addIfTempFlowItem(preUuid, isIf) {
                 let preTempItem = this.getFlow(preUuid);
-                // if
-                let tempFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, {offsetLeft: -FLOW_LEFT_STEP_LENGTH});
-                this.draggableFlowConnect(preUuid, tempFlowUuid);
-                this.createFlowItemLabel(preUuid, tempFlowUuid, '是');
-                preTempItem.nextIfId = tempFlowUuid;
-                //  else
-                let tempFlowUuid2 = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, {offsetLeft: FLOW_LEFT_STEP_LENGTH});
-                this.draggableFlowConnect(preUuid, tempFlowUuid2);
-                this.createFlowItemLabel(preUuid, tempFlowUuid2, '否');
-                preTempItem.nextElseId = tempFlowUuid2;
+                if (isIf) {
+                    // if
+                    let tempFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, {offsetLeft: -FLOW_LEFT_STEP_LENGTH});
+                    this.draggableFlowConnect(preUuid, tempFlowUuid);
+                    this.createFlowItemLabel(preUuid, tempFlowUuid, '是');
+                    preTempItem.nextIfId = tempFlowUuid;
+                } else {
+                    //  else
+                    let tempFlowUuid2 = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, {offsetLeft: FLOW_LEFT_STEP_LENGTH});
+                    this.draggableFlowConnect(preUuid, tempFlowUuid2);
+                    this.createFlowItemLabel(preUuid, tempFlowUuid2, '否');
+                    preTempItem.nextElseId = tempFlowUuid2;
+                }
             },
 
 
@@ -1353,7 +1368,8 @@
 
 
             handleSort() {
-                this.$alert('开发中。。。')
+                // this.$alert('开发中。。。')
+                this.$_updatePosition();
             },
 
             handleClear() {
@@ -1368,6 +1384,52 @@
                 });
             },
 
+            $_updatePosition() {
+                const startNode = _.find(this.flowList, (flowItem) => {
+                    return this.isStartFlowItem(flowItem);
+                });
+
+                if (startNode) {
+                    this.$_updatePositionItemAndNext(startNode);
+                    this.$_plumbRepaintEverything();
+                }
+            },
+
+            $_updatePositionItemAndNext(flowItem) {
+                if (this.isStartFlowItem(flowItem)) {
+                    flowItem.top = FLOW_START_STEP_TOP;
+                    flowItem.left = this.getFlowItemInitLeft();
+                } else {
+                    const preFlowItem = this.getFlow(flowItem.prev[0]);
+
+                    // pre flow item
+                    if (preFlowItem) {
+                        // top
+                        flowItem.top = preFlowItem.top + FLOW_STEP_LENGTH;
+                        if (this.isIfFlowItem(preFlowItem.type)) {
+                            if (flowItem.uuid === preFlowItem.nextIfId) {
+                                flowItem.left = preFlowItem.left - FLOW_LEFT_STEP_LENGTH;
+                            } else {
+                                flowItem.left = preFlowItem.left + FLOW_LEFT_STEP_LENGTH;
+                            }
+                        } else if (this.isExpandFlowItem(preFlowItem.type)) {
+
+                        } else {
+                            flowItem.left = preFlowItem.left;
+                        }
+
+                    }
+                }
+
+                flowItem.next.forEach((uuid) => {
+                    const _flowItem = this.getFlow(uuid);
+                    if (_flowItem) {
+                        this.$_updatePositionItemAndNext(_flowItem);
+                    }
+                })
+            },
+
+
             $_doClear() {
                 const startNode = _.find(this.flowList, (flowItem) => {
                     return this.isStartFlowItem(flowItem);
@@ -1375,7 +1437,7 @@
 
                 if (startNode) {
                     this.deleteNextFlowItem(startNode.uuid);
-                    this.$nextTick(()=>{
+                    this.$nextTick(() => {
                         this.initFlow();
                     })
                 }
@@ -1423,8 +1485,12 @@
                 return flowItemType === FLOW_ITEM_TYPE.expandNode;
             },
 
+            //
             isHasMoreNextFlowItem(flowItem) {
-                return this.isIfFlowItem(flowItem.type) || this.isExpandFlowItem(flowItem.type);
+                return this.isHasMoreNextFlowItemByType(flowItem.type);
+            },
+            isHasMoreNextFlowItemByType(flowItemType) {
+                return this.isIfFlowItem(flowItemType) || this.isExpandFlowItem(flowItemType);
             },
 
             //
