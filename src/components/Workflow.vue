@@ -659,6 +659,7 @@
                         const expandFlowItem = this.getExpandFlowItem(preFlowItem, flowItem.uuid);
                         this.addExpandOneTempFlowItem(preFlowItem, flowItem.left, expandFlowItem.name);
                     }
+                    this.addTempFlowItem(flowItem.prev[0]);
                 }
             },
 
@@ -696,8 +697,6 @@
                 });
                 // todo
                 // delete end points
-                // this.removeFlowConnection(flowItem.prev[0], flowItem.uuid);
-                // this.removeFlowConnection(flowItem.uuid, flowItem.next[0]);
                 this.$options.jsPlumb.removeAllEndpoints(flowItem.uuid, true);
                 this.flowList.splice(idx, 1);
 
@@ -919,12 +918,11 @@
                 this.createFlowConnectionLabel(newFlowItem.prev, newFlowItem.uuid);
                 // action or wait node
                 if (this.isOnePreOneNext(newFlowItem)) {
-                    //
                     this.addTempFlowItem(tempFlowId);
                 } else if (newFlowItem.groupType === FLOW_TYPE.condition) {
+                    const preFlowItem = this.getFlow(newFlowItem.prev[0]);
                     if (this.isIfFlowItem(flowItemType)) {
-                        const preFlowItem = this.getFlow(newFlowItem.prev[0]);
-
+                        // if pre node is ifElse
                         if (this.isIfFlowItem(preFlowItem.type)) {
                             if (preFlowItem.nextIfId === newFlowItem.uuid) {
                                 newFlowItem.left -= FLOW_IF_OFFSET_LENGTH;
@@ -934,12 +932,24 @@
                         }
                         // add if temp flow item and else temp flow item
                         this.addIfTempFlowItem(tempFlowId);
-                        this.$_plumbRepaintEverything();
                     }
                     //
                     else if (this.isExpandFlowItem(flowItemType)) {
+                        // if pre node is ifElse
+                        if (this.isIfFlowItem(preFlowItem.type)) {
+                            const nextLength = newFlowItem.formData.ruleGroupList.length;
+                            let isEven = nextLength % 2 === 0;
+                            let centerIndex = parseInt(nextLength / 2, 10);
+                            const offset = (isEven ? centerIndex : centerIndex + 1) * FLOW_LEFT_STEP_LENGTH + FLOW_IF_OFFSET_LENGTH;
+                            if (preFlowItem.nextIfId === newFlowItem.uuid) {
+                                newFlowItem.left -= offset;
+                            } else if (preFlowItem.nextElseId === newFlowItem.uuid) {
+                                newFlowItem.left += offset;
+                            }
+                        }
                         this.addExpandTempFlowItem(tempFlowId, newFlowItem.formData.ruleGroupList);
                     }
+                    this.$_plumbRepaintEverything();
                 }
 
                 return newFlowItem;
@@ -1050,7 +1060,8 @@
             //
             handleAddBetweenFlowItem(options) {
                 let {flowItemType, preFlowId, nextFlowId, formData} = options;
-                // if step is if node
+                // if step is ifElse of Expand
+                // need delete next all flow
                 if (this.isHasMoreNextFlowItemByType(flowItemType)) {
                     this.deleteNextFlowItem(nextFlowId);
                     this.$nextTick(() => {
@@ -1066,27 +1077,34 @@
                 }
             },
 
+            // add between flow item
             handleAddBetweenCommonFlowItem(opts) {
                 let {flowItemType, preFlowId, nextFlowId, formData} = opts;
                 // update flow position
                 let prevFlowItem = this.getFlow(preFlowId);
                 let options = {};
                 //
-                let flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
+                let flowItemUuid = null;
                 // prev flow item is if flow item
                 if (this.isIfFlowItem(prevFlowItem.type)) {
                     let nextFlowItem = this.getFlow(nextFlowId);
                     let isIf = prevFlowItem.nextIfId === nextFlowItem.uuid;
+                    options.offsetLeft = isIf ? -FLOW_LEFT_STEP_LENGTH : FLOW_LEFT_STEP_LENGTH;
+                    flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
                     if (isIf) {
                         prevFlowItem.nextIfId = flowItemUuid;
-                        options.offsetLeft = -FLOW_LEFT_STEP_LENGTH;
                     } else {
                         prevFlowItem.nextElseId = flowItemUuid;
-                        options.offsetLeft = FLOW_LEFT_STEP_LENGTH;
                     }
+
                 } else if (this.isExpandFlowItem(prevFlowItem.type)) {
                     let nextFlowItem = this.getFlow(nextFlowId);
                     options.offsetLeft = nextFlowItem.left - prevFlowItem.left;
+                    flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
+                }
+
+                if (!flowItemUuid) {
+                    flowItemUuid = this.createFlowItem(flowItemType, preFlowId);
                 }
 
                 let flowItem = this.getFlow(flowItemUuid);
@@ -1098,7 +1116,9 @@
 
                     if (this.isIfFlowItem(prevFlowItem.type)) {
                         this.createFlowItemLabel(preFlowId, flowItemUuid, options.offsetLeft > 0 ? '是' : '否`');
-                    } else if (this.isExpandFlowItem(prevFlowItem.type)) {
+                    }
+                    // expand
+                    else if (this.isExpandFlowItem(prevFlowItem.type)) {
                         let name = this.getExpandFlowItemName(prevFlowItem, flowItemUuid);
                         this.createFlowItemLabel(preFlowId, flowItemUuid, name);
                     }
