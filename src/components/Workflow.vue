@@ -654,12 +654,13 @@
                     }
                     // delete expand
                     else if (this.isExpandFlowItem(preFlowItem.type)) {
-                        //
                         // this.addTempFlowItem(flowItem.prev[0]);
                         const expandFlowItem = this.getExpandFlowItem(preFlowItem, flowItem.uuid);
                         this.addExpandOneTempFlowItem(preFlowItem, flowItem.left, expandFlowItem.name);
+                    } else {
+                        //
+                        this.addTempFlowItem(flowItem.prev[0]);
                     }
-                    this.addTempFlowItem(flowItem.prev[0]);
                 }
             },
 
@@ -1082,30 +1083,34 @@
                 let {flowItemType, preFlowId, nextFlowId, formData} = opts;
                 // update flow position
                 let prevFlowItem = this.getFlow(preFlowId);
-                let options = {};
+                let nextFlowItem = this.getFlow(nextFlowId);
+                // use next flow item's left
+                let options = {
+                    left: nextFlowItem.left
+                };
                 //
-                let flowItemUuid = null;
+                let flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
                 // prev flow item is if flow item
-                if (this.isIfFlowItem(prevFlowItem.type)) {
-                    let nextFlowItem = this.getFlow(nextFlowId);
-                    let isIf = prevFlowItem.nextIfId === nextFlowItem.uuid;
-                    options.offsetLeft = isIf ? -FLOW_LEFT_STEP_LENGTH : FLOW_LEFT_STEP_LENGTH;
-                    flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
-                    if (isIf) {
-                        prevFlowItem.nextIfId = flowItemUuid;
-                    } else {
-                        prevFlowItem.nextElseId = flowItemUuid;
-                    }
+                // if (this.isIfFlowItem(prevFlowItem.type)) {
+                //     let nextFlowItem = this.getFlow(nextFlowId);
+                //     let isIf = prevFlowItem.nextIfId === nextFlowItem.uuid;
+                //     options.offsetLeft = isIf ? -FLOW_LEFT_STEP_LENGTH : FLOW_LEFT_STEP_LENGTH;
+                //     flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
+                //     if (isIf) {
+                //         prevFlowItem.nextIfId = flowItemUuid;
+                //     } else {
+                //         prevFlowItem.nextElseId = flowItemUuid;
+                //     }
+                //
+                // } else if (this.isExpandFlowItem(prevFlowItem.type)) {
+                //     let nextFlowItem = this.getFlow(nextFlowId);
+                //     options.offsetLeft = nextFlowItem.left - prevFlowItem.left;
+                //     flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
+                // }
 
-                } else if (this.isExpandFlowItem(prevFlowItem.type)) {
-                    let nextFlowItem = this.getFlow(nextFlowId);
-                    options.offsetLeft = nextFlowItem.left - prevFlowItem.left;
-                    flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
-                }
-
-                if (!flowItemUuid) {
-                    flowItemUuid = this.createFlowItem(flowItemType, preFlowId);
-                }
+                // if (!flowItemUuid) {
+                //     flowItemUuid = this.createFlowItem(flowItemType, preFlowId);
+                // }
 
                 let flowItem = this.getFlow(flowItemUuid);
                 flowItem.formData = formData;
@@ -1613,6 +1618,22 @@
                 })
             },
 
+            getFlowItemFormData(item) {
+                let result = clone(item);
+
+                delete result.elementId;
+                delete result.stepId;
+
+                if (result.nextStep) {
+                    delete result.nextStep;
+                }
+
+                if (result.nextSteps) {
+                    delete result.nextSteps;
+                }
+
+                return result;
+            },
             //
             _message(msg, type) {
                 this.$message({

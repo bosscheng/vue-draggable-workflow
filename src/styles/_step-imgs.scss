@@ -85,3 +85,8 @@
   background: url("../assets/icon-undo.png") no-repeat center;
   @include stem-img(25px);
 }
+
+.icon-undo-disabled{
+  background: url("../assets/icon-undo-disable.png") no-repeat center;
+  @include stem-img(25px);
+}
