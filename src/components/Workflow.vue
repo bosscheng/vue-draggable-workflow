@@ -9,7 +9,7 @@
                 </el-tooltip>
                 <el-tooltip class="item" effect="dark" content="撤销" placement="top-start">
                     <div class="tool-item" @click="handleUndo">
-                        <span class="icon-undo"></span>
+                        <span class="icon-undo" :class="{'icon-undo-disabled':!canUndo}"></span>
                     </div>
                 </el-tooltip>
                 <el-tooltip class="item" effect="dark" content="重做" placement="top-start">
@@ -218,6 +218,7 @@
     import {jsPlumb} from 'jsplumb';
     import _ from 'lodash';
 
+    let MEMORY_LIST = [];
 
     const dragConfig = {
         animation: 0,
@@ -262,7 +263,8 @@
                 movingFlowItem: undefined, // moving
                 movedFlowItem: undefined, //  moved
                 canvasDataRoom: 100,
-                toggleGridLine: true
+                toggleGridLine: true,
+                canUndo: false,
             }
         },
         components: {
@@ -305,7 +307,7 @@
                 this.addTempFlowItem(startFlowUuid);
             },
 
-            updateFlow(editItem) {
+            updateFlow(editItem, callback) {
                 let positions = JSON.parse(editItem.positions);
                 let steps = editItem.steps;
                 let flowList = [];
@@ -394,10 +396,14 @@
                     this.$nextTick(() => {
                         flowList.forEach((item) => {
                             item.next.forEach((id, index) => {
-                                this.addFlowItemConnect(item.uuid, id);
+                                let nextFlowItem = this.getFlow(id);
+                                if (!this.isTempFlowItem(nextFlowItem)) {
+                                    this.addFlowItemConnect(item.uuid, id);
+                                } else {
+                                    this.draggableFlowConnect(item.uuid, id, true);
+                                }
                                 //
                                 if (this.isIfFlowItem(item.type)) {
-                                    let nextFlowItem = this.getFlow(id);
                                     let isIf = item.nextIfId === nextFlowItem.uuid;
                                     this.createFlowItemLabel(item.uuid, id, isIf ? '是' : '否');
                                 } else if (this.isExpandFlowItem(item.type)) {
@@ -406,8 +412,29 @@
                                 }
                             });
                         });
+                        this.$nextTick(() => {
+                            callback && callback();
+                        })
                     });
                 });
+            },
+
+            $_updateMemoryList() {
+                console.log('$_updateMemoryList');
+                const tempItem = this.formatData();
+
+                // max store is 10
+                if (MEMORY_LIST.length > 10) {
+                    MEMORY_LIST.shift();
+                }
+                MEMORY_LIST.push(tempItem);
+                console.log(MEMORY_LIST);
+
+                this.$_updateCanUndoBtn();
+            },
+
+            $_updateCanUndoBtn() {
+                this.canUndo = MEMORY_LIST.length > 0;
             },
 
             // init js plumb
@@ -644,15 +671,18 @@
                     //
                     let index = this.getFlowIndex(flowItem.uuid);
                     this.handleDeleteOnePrevOneNextFlowItem(flowItem, index);
-                } else if (this.isHasMoreNextFlowItem(flowItem)) {
-                    //  delete ifElse or expand
+                }
+                // delete item is has more flow item like ifElse or expand flow item
+                else if (this.isHasMoreNextFlowItem(flowItem)) {
+                    //  delete next flow item
                     this.deleteNextFlowItem(flowItem.uuid);
+
                     const preFlowItem = this.getFlow(flowItem.prev[0]);
-                    // delete ifElse
+                    // pre is ifElse
                     if (this.isIfFlowItem(preFlowItem.type)) {
                         this.addIfOneTempFlowItem(preFlowItem.uuid, preFlowItem.nextIfId === flowItem.uuid)
                     }
-                    // delete expand
+                    // pre is expand expand
                     else if (this.isExpandFlowItem(preFlowItem.type)) {
                         // this.addTempFlowItem(flowItem.prev[0]);
                         const expandFlowItem = this.getExpandFlowItem(preFlowItem, flowItem.uuid);
@@ -830,14 +860,15 @@
 
             //
             handleDeleteFlowItem(flowItem) {
-                this.$confirm('确定要删除吗？', '提示', {
+                this.$confirm('确定要删除吗？Tips: ifNode 和 expandNode 会删除下面所有节点', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
+                    this.$_updateMemoryList();
                     this.deleteFlowItem(flowItem);
-                }).catch(() => {
-
+                }).catch((e) => {
+                    console.warn(e);
                 });
             },
 
@@ -883,6 +914,7 @@
             handleSelectFlowItem(flowItem) {
                 //
                 if (flowItem.type === FLOW_ITEM_TYPE.endNode) {
+                    this.$_updateMemoryList();
                     if (this.dialogObj.isBetween) {
                         // add end flow item and remove next all
                         let prevFlowId = this.dialogObj.flowPreUuid;
@@ -1312,6 +1344,7 @@
             // add flow connection and label
             addFlowItemConnect(prevId, nextId) {
                 this.draggableFlowConnect(prevId, nextId, true);
+
                 this.createFlowConnectionLabel(prevId, nextId);
             },
 
@@ -1321,16 +1354,20 @@
              * @param evt
              */
             handleChangeFlowPosition(flowItem, evt) {
-                const target = evt.currentTarget;
-                let left = ('' + target.style.left).replace('px', '');
-                let top = ('' + target.style.top).replace('px', '');
-                flowItem.left = Number(left);
-                flowItem.top = Number(top);
 
+                const target = evt.currentTarget;
                 let firstTime = target.dataset.firstTime;
                 let lastTime = new Date().getTime();
+                let left = ('' + target.style.left).replace('px', '');
+                let top = ('' + target.style.top).replace('px', '');
+                const _isClick = lastTime - firstTime < 200;
+                if (!_isClick) {
+                    this.$_updateMemoryList();
+                }
 
-                target.dataset.isClick = lastTime - firstTime < 200;
+                flowItem.left = Number(left);
+                flowItem.top = Number(top);
+                target.dataset.isClick = _isClick;
             },
 
             handleFlowMoveDown(evt) {
@@ -1348,7 +1385,7 @@
                 // validate
                 $flowEditComponent.validateFormData().then(() => {
                     let formData = $flowEditComponent.formData();
-
+                    this.$_updateMemoryList();
                     // between
                     if (this.dialogObj.isBetween) {
                         this.handleAddBetweenFlowItem({
@@ -1374,6 +1411,7 @@
                         }
                     }
                     this.initDialog();
+
                 }).catch(() => {
 
                 });
@@ -1500,7 +1538,7 @@
                         top: flowItem.top
                     };
                 });
-                result.position = positionObj;
+                result.positions = JSON.stringify(positionObj);
                 result.steps = steps;
 
                 return result;
@@ -1534,14 +1572,28 @@
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
-                    this.$_doClear();
+                    this.$_doClear(true);
                 }).catch(() => {
 
                 });
             },
 
             handleUndo() {
-                this.$alert('开发中......');
+                // this.$alert('开发中......');
+                if (!this.canUndo) {
+                    return;
+                }
+
+                if (MEMORY_LIST.length > 0) {
+                    const tempItem = MEMORY_LIST.pop();
+                    this.$_doClear();
+                    this.$options.jsPlumb.reset();
+                    this.$nextTick(() => {
+                        this.updateFlow(tempItem, this.$_plumbRepaintEverything);
+                    })
+                }
+
+                this.$_updateCanUndoBtn();
             },
 
             $_updatePosition() {
@@ -1596,16 +1648,19 @@
             },
 
 
-            $_doClear() {
+            $_doClear(needInit) {
                 const startNode = _.find(this.flowList, (flowItem) => {
                     return this.isStartFlowItem(flowItem);
                 });
 
                 if (startNode) {
                     this.deleteNextFlowItem(startNode.uuid);
-                    this.$nextTick(() => {
-                        this.initFlow();
-                    })
+                    if (needInit) {
+                        this.$nextTick(() => {
+                            this.initFlow();
+                        })
+                    }
+
                 }
             },
 
