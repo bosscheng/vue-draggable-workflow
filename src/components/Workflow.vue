@@ -213,7 +213,8 @@
     import StartNodeForm from './startNodeForm';
     import NodeNodeForm from './nodeNodeForm';
     import IfNodeForm from './ifNodeForm';
-    import ExpandNodeForm from './expandNodeForm'
+    import ExpandNodeForm from './expandNodeForm';
+    import {workflowItem} from "../mock/mock";
 
     import {jsPlumb} from 'jsplumb';
     import _ from 'lodash';
@@ -235,6 +236,7 @@
 
     const FLOW_START_STEP_TOP = 30;
 
+    const INIT_DATA = workflowItem;
 
     export default {
         name: "Workflow",
@@ -278,7 +280,11 @@
         mounted() {
             this.$options.jsPlumb = jsPlumb.getInstance();
             this.initJsPlumb();
-            this.initFlow();
+            if (INIT_DATA.steps.length > 0) {
+                this.updateFlow(INIT_DATA);
+            } else {
+                this.initFlow();
+            }
         },
         computed: {
             dialogFlowItemComponent() {
