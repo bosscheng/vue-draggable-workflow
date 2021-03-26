@@ -206,4 +206,238 @@ export const workflowItem = {
             "nextStep": null
         }
     ]
+};
+
+export const workflowItem2 ={
+    positions:'{"f4d316b7-b2d1-46bf-aeaa-42525c84726f":{"left":801,"top":30},"c89829f5-8595-458c-b040-4ff84d27befc":{"left":801,"top":150},"d611c32f-b6c0-4b97-80d9-47b783bd93ad":{"left":174,"top":270},"7bd4fc3d-c3b9-4b19-81dc-e49cd1e7b5c5":{"left":800,"top":271},"85c30556-75fa-441c-9a1d-0dced21755a5":{"left":1246,"top":261},"23220649-1dcd-4bdc-af43-a6f80800b80c":{"left":720,"top":391},"da100cd2-a2fd-4967-911f-3acb1036d249":{"left":880,"top":391},"4829e3d8-b45a-4719-abdb-518df7e383ea":{"left":1166,"top":381},"70712f8b-d164-4224-89fd-983a9a20f6b7":{"left":1326,"top":381},"9fa174ae-97b3-41b6-a9a5-9e6189561b85":{"left":720,"top":511},"996c2224-7ae3-43fe-ba3c-8b0c33f8a632":{"left":640,"top":631},"d2a791f1-7bd7-4cde-ab7c-2e8fab3bb869":{"left":800,"top":631},"d5ba66cb-7ddb-4dbc-ad44-fe27570cc90d":{"left":640,"top":751},"89bf2095-030f-4c5f-9d52-1f97cab2e295":{"left":720,"top":871},"83e1fce2-90d8-4edc-9d72-256e2e95425c":{"left":560,"top":871},"653742e5-ea18-4808-ae09-578a3b4667de":{"left":560,"top":991},"b8cb3a6f-4235-4b73-af09-3288f6bebe66":{"left":1166,"top":501},"43c74167-9906-454f-b3d4-4b0687c9cb94":{"left":1086,"top":621},"88e3aee3-d01c-432e-af05-d79d922c55df":{"left":1246,"top":621},"35a13fb1-916e-4717-9692-96a3262e5fd4":{"left":1086,"top":741},"d1c1e591-5b3e-4128-9609-080a30d8e414":{"left":1006,"top":861},"512f2bac-82ca-4ecc-8e71-a0171e8beb4a":{"left":1166,"top":861},"ccf0d71b-a81e-47f6-80f6-ec3dfb270f9c":{"left":1006,"top":981}}',
+    steps:[
+        {
+            "elementId": "startNode",
+            "stepId": "f4d316b7-b2d1-46bf-aeaa-42525c84726f",
+            "nextStep": "c89829f5-8595-458c-b040-4ff84d27befc"
+        },
+        {
+            "elementId": "switchNode",
+            "stepId": "c89829f5-8595-458c-b040-4ff84d27befc",
+            "nextSteps": [
+                {
+                    "nextStep": "d611c32f-b6c0-4b97-80d9-47b783bd93ad",
+                    "name": "1",
+                    "isDefault": false
+                },
+                {
+                    "nextStep": "7bd4fc3d-c3b9-4b19-81dc-e49cd1e7b5c5",
+                    "name": "2",
+                    "isDefault": false
+                },
+                {
+                    "nextStep": "85c30556-75fa-441c-9a1d-0dced21755a5",
+                    "name": "3",
+                    "isDefault": false
+                }
+            ],
+            "stepName": "条件分组"
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "d611c32f-b6c0-4b97-80d9-47b783bd93ad",
+            "nextStep": null
+        },
+        {
+            "elementId": "conditionNode",
+            "stepId": "7bd4fc3d-c3b9-4b19-81dc-e49cd1e7b5c5",
+            "nextSteps": [
+                {
+                    "nextStep": "23220649-1dcd-4bdc-af43-a6f80800b80c",
+                    "name": "是",
+                    "isDefault": false,
+                    "ruleGroups": []
+                },
+                {
+                    "nextStep": "da100cd2-a2fd-4967-911f-3acb1036d249",
+                    "name": "否",
+                    "isDefault": true,
+                    "ruleGroups": []
+                }
+            ],
+            "stepName": "条件判断",
+            "stepJson": "{}"
+        },
+        {
+            "elementId": "conditionNode",
+            "stepId": "85c30556-75fa-441c-9a1d-0dced21755a5",
+            "nextSteps": [
+                {
+                    "nextStep": "4829e3d8-b45a-4719-abdb-518df7e383ea",
+                    "name": "是",
+                    "isDefault": false,
+                    "ruleGroups": []
+                },
+                {
+                    "nextStep": "70712f8b-d164-4224-89fd-983a9a20f6b7",
+                    "name": "否",
+                    "isDefault": true,
+                    "ruleGroups": []
+                }
+            ],
+            "stepName": "条件判断",
+            "stepJson": "{}"
+        },
+        {
+            "elementId": "nodeNode",
+            "stepId": "23220649-1dcd-4bdc-af43-a6f80800b80c",
+            "nextStep": "9fa174ae-97b3-41b6-a9a5-9e6189561b85",
+            "stepName": "节点"
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "da100cd2-a2fd-4967-911f-3acb1036d249",
+            "nextStep": null
+        },
+        {
+            "elementId": "nodeNode",
+            "stepId": "4829e3d8-b45a-4719-abdb-518df7e383ea",
+            "nextStep": "b8cb3a6f-4235-4b73-af09-3288f6bebe66",
+            "stepName": "节点"
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "70712f8b-d164-4224-89fd-983a9a20f6b7",
+            "nextStep": null
+        },
+        {
+            "elementId": "conditionNode",
+            "stepId": "9fa174ae-97b3-41b6-a9a5-9e6189561b85",
+            "nextSteps": [
+                {
+                    "nextStep": "996c2224-7ae3-43fe-ba3c-8b0c33f8a632",
+                    "name": "是",
+                    "isDefault": false,
+                    "ruleGroups": []
+                },
+                {
+                    "nextStep": "d2a791f1-7bd7-4cde-ab7c-2e8fab3bb869",
+                    "name": "否",
+                    "isDefault": true,
+                    "ruleGroups": []
+                }
+            ],
+            "stepName": "条件判断",
+            "stepJson": "{}"
+        },
+        {
+            "elementId": "nodeNode",
+            "stepId": "996c2224-7ae3-43fe-ba3c-8b0c33f8a632",
+            "nextStep": "d5ba66cb-7ddb-4dbc-ad44-fe27570cc90d",
+            "stepName": "节点"
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "d2a791f1-7bd7-4cde-ab7c-2e8fab3bb869",
+            "nextStep": null
+        },
+        {
+            "elementId": "conditionNode",
+            "stepId": "d5ba66cb-7ddb-4dbc-ad44-fe27570cc90d",
+            "nextSteps": [
+                {
+                    "nextStep": "83e1fce2-90d8-4edc-9d72-256e2e95425c",
+                    "name": "是",
+                    "isDefault": false,
+                    "ruleGroups": []
+                },
+                {
+                    "nextStep": "89bf2095-030f-4c5f-9d52-1f97cab2e295",
+                    "name": "否",
+                    "isDefault": true,
+                    "ruleGroups": []
+                }
+            ],
+            "stepName": "条件判断",
+            "stepJson": "{}"
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "89bf2095-030f-4c5f-9d52-1f97cab2e295",
+            "nextStep": null
+        },
+        {
+            "elementId": "nodeNode",
+            "stepId": "83e1fce2-90d8-4edc-9d72-256e2e95425c",
+            "nextStep": "653742e5-ea18-4808-ae09-578a3b4667de",
+            "stepName": "节点"
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "653742e5-ea18-4808-ae09-578a3b4667de",
+            "nextStep": null
+        },
+        {
+            "elementId": "conditionNode",
+            "stepId": "b8cb3a6f-4235-4b73-af09-3288f6bebe66",
+            "nextSteps": [
+                {
+                    "nextStep": "43c74167-9906-454f-b3d4-4b0687c9cb94",
+                    "name": "是",
+                    "isDefault": false,
+                    "ruleGroups": []
+                },
+                {
+                    "nextStep": "88e3aee3-d01c-432e-af05-d79d922c55df",
+                    "name": "否",
+                    "isDefault": true,
+                    "ruleGroups": []
+                }
+            ],
+            "stepName": "条件判断",
+            "stepJson": "{}"
+        },
+        {
+            "elementId": "nodeNode",
+            "stepId": "43c74167-9906-454f-b3d4-4b0687c9cb94",
+            "nextStep": "35a13fb1-916e-4717-9692-96a3262e5fd4",
+            "stepName": "节点"
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "88e3aee3-d01c-432e-af05-d79d922c55df",
+            "nextStep": null
+        },
+        {
+            "elementId": "conditionNode",
+            "stepId": "35a13fb1-916e-4717-9692-96a3262e5fd4",
+            "nextSteps": [
+                {
+                    "nextStep": "d1c1e591-5b3e-4128-9609-080a30d8e414",
+                    "name": "是",
+                    "isDefault": false,
+                    "ruleGroups": []
+                },
+                {
+                    "nextStep": "512f2bac-82ca-4ecc-8e71-a0171e8beb4a",
+                    "name": "否",
+                    "isDefault": true,
+                    "ruleGroups": []
+                }
+            ],
+            "stepName": "条件判断",
+            "stepJson": "{}"
+        },
+        {
+            "elementId": "nodeNode",
+            "stepId": "d1c1e591-5b3e-4128-9609-080a30d8e414",
+            "nextStep": "ccf0d71b-a81e-47f6-80f6-ec3dfb270f9c",
+            "stepName": "节点"
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "512f2bac-82ca-4ecc-8e71-a0171e8beb4a",
+            "nextStep": null
+        },
+        {
+            "elementId": "stopNode",
+            "stepId": "ccf0d71b-a81e-47f6-80f6-ec3dfb270f9c",
+            "nextStep": null
+        }
+    ]
 }

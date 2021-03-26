@@ -214,7 +214,7 @@
     import NodeNodeForm from './nodeNodeForm';
     import IfNodeForm from './ifNodeForm';
     import ExpandNodeForm from './expandNodeForm';
-    import {workflowItem} from "../mock/mock";
+    import {workflowItem, workflowItem2} from "../mock/mock";
 
     import {jsPlumb} from 'jsplumb';
     import _ from 'lodash';
@@ -236,7 +236,7 @@
 
     const FLOW_START_STEP_TOP = 30;
 
-    const INIT_DATA = workflowItem;
+    const INIT_DATA = workflowItem2;
 
     export default {
         name: "Workflow",
@@ -1609,10 +1609,12 @@
 
                 if (startNode) {
                     this.$_updatePositionItemAndNext(startNode);
+                    this.$_updatePositionExpandList();
                     this.$_plumbRepaintEverything();
                 }
             },
 
+            // update position item and next
             $_updatePositionItemAndNext(flowItem) {
                 if (this.isStartFlowItem(flowItem)) {
                     flowItem.top = FLOW_START_STEP_TOP;
@@ -1637,7 +1639,7 @@
                                 }
                             }
                         } else if (this.isExpandFlowItem(preFlowItem.type)) {
-
+                            // todo 待完成。
                         } else {
                             flowItem.left = preFlowItem.left;
                         }
@@ -1651,6 +1653,34 @@
                         this.$_updatePositionItemAndNext(_flowItem);
                     }
                 })
+            },
+
+            // update position expand and next
+            $_updatePositionExpandList() {
+                const expandList = this.flowList.filter((flowItem) => {
+                    return this.isExpandFlowItem(flowItem.type);
+                });
+
+                if (expandList.length > 0) {
+                    for (let i = expandList.length; i >= 0; i--) {
+                        const expandItem = expandList[i];
+
+                    }
+                }
+            },
+
+            //
+            $_getFlowItemRect(flowItem) {
+                let result = {
+                    left: 0,
+                    right: 0
+                };
+                flowItem.next.forEach((flowItemUuid) => {
+
+                })
+
+
+                return result;
             },
 
 
