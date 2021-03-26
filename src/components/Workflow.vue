@@ -46,7 +46,7 @@
                 <div id="campaignCanvas" :style="canvasRoomScaleStyle" ref="campaignCanvas">
                     <template v-for="(flowItem,index) in flowList">
                         <div class="node-content-wrap"
-                             :key="index"
+                             :key="flowItem.uuid"
                              @mousedown="handleFlowMoveDown"
                              @mouseup="(event)=>{handleChangeFlowPosition(flowItem,event)}"
                              :id="flowItem.uuid"
@@ -298,12 +298,119 @@
             }
         },
         methods: {
-            //
+            // init flow
+            // create startFlow and tempFlow
             initFlow() {
                 let startFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.startNode);
                 this.addTempFlowItem(startFlowUuid);
             },
 
+            updateFlow(editItem) {
+                let positions = JSON.parse(editItem.positions);
+                let steps = editItem.steps;
+                let flowList = [];
+
+                steps.forEach((step) => {
+                    let flowItem = this.getFlowItemById(step.elementId);
+
+                    if (!flowItem) {
+                        return;
+                    }
+                    flowItem.next = [];
+                    flowItem.prev = [];
+                    flowItem.uuid = step.stepId;
+
+                    let position = positions[step.stepId];
+
+                    if (position) {
+                        flowItem.left = position.left;
+                        flowItem.top = position.top;
+                    }
+
+                    if (step.nextStep) {
+                        flowItem.next = [step.nextStep];
+                    } else if (step.nextSteps) {
+                        flowItem.next = step.nextSteps.map((nextStep) => {
+                            return nextStep.nextStep;
+                        });
+                    }
+
+                    if (flowItem.type !== FLOW_ITEM_TYPE.endNode) {
+                        //
+                        if (this.isIfFlowItem(flowItem.type)) {
+                            let formData = clone(step.nextSteps[0]);
+                            formData.stepName = step.stepName;
+                            flowItem.formData = this.getFlowItemFormData(formData);
+                            // else
+                            if (formData.isDefault) {
+                                flowItem.nextElseId = formData.nextStep;
+                                flowItem.nextIfId = step.nextSteps[1].nextStep;
+                            } else {
+                                flowItem.nextIfId = formData.nextStep;
+                                flowItem.nextElseId = step.nextSteps[1].nextStep;
+                            }
+                            if (step.stepJson) {
+                                let stepOtherObj = JSON.parse(step.stepJson);
+                                flowItem.formData.ifNodeTitle = stepOtherObj.ifNodeTitle;
+                            }
+                        } else if (this.isExpandFlowItem(flowItem.type)) {
+                            let ruleGroupList = step.nextSteps;
+                            let formData = {};
+                            formData.stepName = step.stepName;
+                            formData.ruleGroupList = ruleGroupList;
+                            flowItem.formData = formData;
+                        } else {
+                            flowItem.formData = this.getFlowItemFormData(step);
+                        }
+                    }
+
+                    flowList.push(flowItem);
+                });
+
+                // update
+                flowList.forEach((item) => {
+                    if (item.next.length > 0) {
+                        item.next.forEach((id) => {
+                            let nextItem = _.find(flowList, (tempItem) => {
+                                return tempItem.uuid === id;
+                            });
+
+                            if (nextItem) {
+                                if (nextItem.prev.indexOf(item.uuid) === -1) {
+                                    nextItem.prev.push(item.uuid);
+                                }
+                            }
+                        });
+                    }
+                });
+                this.flowList = flowList;
+
+                this.$nextTick(() => {
+                    //
+                    flowList.forEach((item) => {
+                        this.$options.jsPlumb.draggable(item.uuid, {});
+                    });
+
+                    this.$nextTick(() => {
+                        flowList.forEach((item) => {
+                            item.next.forEach((id, index) => {
+                                this.addFlowItemConnect(item.uuid, id);
+                                //
+                                if (this.isIfFlowItem(item.type)) {
+                                    let nextFlowItem = this.getFlow(id);
+                                    let isIf = item.nextIfId === nextFlowItem.uuid;
+                                    this.createFlowItemLabel(item.uuid, id, isIf ? '是' : '否');
+                                } else if (this.isExpandFlowItem(item.type)) {
+                                    let name = this.getExpandFlowItemName(item, id);
+                                    this.createFlowItemLabel(item.uuid, id, name);
+                                }
+                            });
+                        });
+                    });
+                });
+            },
+
+            // init js plumb
             initJsPlumb() {
                 this.$options.jsPlumb.ready(() => {
                     this.jsPlumbInit = true;
@@ -355,7 +462,7 @@
                 });
 
                 lines.forEach((line) => {
-                    this.$options.jsPlumb.deleteConnection(line, {force: true});
+                    this.$options.jsPlumb.deleteConnection(line);
                 });
             },
 
@@ -530,10 +637,11 @@
                 return tempFlowItem;
             },
 
-            //
+            // delete flow item
             deleteFlowItem(flowItem) {
                 //
                 if (this.isOnePreOneNext(flowItem) || this.isEndFlowItem(flowItem)) {
+                    //
                     let index = this.getFlowIndex(flowItem.uuid);
                     this.handleDeleteOnePrevOneNextFlowItem(flowItem, index);
                 } else if (this.isHasMoreNextFlowItem(flowItem)) {
@@ -586,14 +694,14 @@
                     let index = item.next.indexOf(flowItem.uuid);
                     item.next.splice(index, 1);
                 });
-
-                // delete self
+                // todo
+                // delete end points
+                // this.removeFlowConnection(flowItem.prev[0], flowItem.uuid);
+                // this.removeFlowConnection(flowItem.uuid, flowItem.next[0]);
+                this.$options.jsPlumb.removeAllEndpoints(flowItem.uuid, true);
                 this.flowList.splice(idx, 1);
 
                 this.$nextTick(function () {
-                    // delete self
-                    this.$options.jsPlumb.removeAllEndpoints(flowItem.uuid);
-
                     let preFlowItem = prevFlowList[0];
                     let nextFlowItem = nextFlowList[0];
 
@@ -643,13 +751,20 @@
                             }
                         }
                     }
+
+                    this.$nextTick(() => {
+                        if (nextFlowItem) {
+                            this.moveFlowItem(nextFlowItem.uuid);
+                            this.$_plumbRepaintEverything();
+                        }
+                    });
                 });
             },
 
             //
             $_plumbRepaintEverything() {
                 this.$nextTick(() => {
-                    this.$options.jsPlumb.repaintEverything();
+                    this.$options.jsPlumb.repaintEverything(true);
                 });
             },
 
