@@ -1128,42 +1128,23 @@
                 };
                 //
                 let flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
-                // prev flow item is if flow item
-                // if (this.isIfFlowItem(prevFlowItem.type)) {
-                //     let nextFlowItem = this.getFlow(nextFlowId);
-                //     let isIf = prevFlowItem.nextIfId === nextFlowItem.uuid;
-                //     options.offsetLeft = isIf ? -FLOW_LEFT_STEP_LENGTH : FLOW_LEFT_STEP_LENGTH;
-                //     flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
-                //     if (isIf) {
-                //         prevFlowItem.nextIfId = flowItemUuid;
-                //     } else {
-                //         prevFlowItem.nextElseId = flowItemUuid;
-                //     }
                 //
-                // } else if (this.isExpandFlowItem(prevFlowItem.type)) {
-                //     let nextFlowItem = this.getFlow(nextFlowId);
-                //     options.offsetLeft = nextFlowItem.left - prevFlowItem.left;
-                //     flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
-                // }
-
-                // if (!flowItemUuid) {
-                //     flowItemUuid = this.createFlowItem(flowItemType, preFlowId);
-                // }
-
                 let flowItem = this.getFlow(flowItemUuid);
                 flowItem.formData = formData;
                 flowItem.next.push(nextFlowId);
                 //
                 this.$nextTick(() => {
-                    this.updateBetweenFlowItem(flowItemUuid, nextFlowId, preFlowId);
-
-                    if (this.isIfFlowItem(prevFlowItem.type)) {
-                        this.createFlowItemLabel(preFlowId, flowItemUuid, options.offsetLeft > 0 ? '是' : '否`');
-                    }
-                    // expand
-                    else if (this.isExpandFlowItem(prevFlowItem.type)) {
+                    if (this.isExpandFlowItem(prevFlowItem.type)) {
+                        // update expandFlowItem
+                        this.updateExpandFlowItemRuleGroup(prevFlowItem.formData.ruleGroupList, nextFlowId, flowItemUuid);
+                        this.updateBetweenFlowItem(flowItemUuid, nextFlowId, preFlowId);
                         let name = this.getExpandFlowItemName(prevFlowItem, flowItemUuid);
                         this.createFlowItemLabel(preFlowId, flowItemUuid, name);
+                    } else {
+                        this.updateBetweenFlowItem(flowItemUuid, nextFlowId, preFlowId);
+                        if (this.isIfFlowItem(prevFlowItem.type)) {
+                            this.createFlowItemLabel(preFlowId, flowItemUuid, options.offsetLeft > 0 ? '是' : '否`');
+                        }
                     }
                 });
             },
@@ -1177,6 +1158,17 @@
                 }
                 return name;
             },
+
+            updateExpandFlowItemRuleGroup(ruleGroupList, oldFlowUuid, newFlowUuid) {
+                let ruleGroupItem = _.find(ruleGroupList, (groupItem) => {
+                    return groupItem.nextStep === oldFlowUuid;
+                });
+
+                if (ruleGroupItem) {
+                    ruleGroupItem.nextStep = newFlowUuid;
+                }
+            },
+
 
             getExpandFlowItem(expandFlowItem, tempFlowUuid) {
                 let ruleGroupList = expandFlowItem.formData.ruleGroupList;
@@ -1197,7 +1189,7 @@
                 // pre flow item remove next next flow
                 let preNextIndex = preFlowItem.next.indexOf(nextFlowId);
                 if (preNextIndex !== -1) {
-                    preFlowItem.next.splice(nextFlowId, 1);
+                    preFlowItem.next.splice(preNextIndex, 1);
                 }
 
                 // prev flow item add current flow
@@ -1321,6 +1313,7 @@
                     let tempFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, options);
                     this.draggableFlowConnect(preUuid, tempFlowUuid);
                     this.createFlowItemLabel(preUuid, tempFlowUuid, tempItem.name);
+                    //update ruleGroupsItem
                     tempItem.nextStep = tempFlowUuid;
                 }
                 // right
@@ -1350,7 +1343,6 @@
             // add flow connection and label
             addFlowItemConnect(prevId, nextId) {
                 this.draggableFlowConnect(prevId, nextId, true);
-
                 this.createFlowConnectionLabel(prevId, nextId);
             },
 
@@ -1677,7 +1669,7 @@
                 };
                 flowItem.next.forEach((flowItemUuid) => {
 
-                })
+                });
 
 
                 return result;
