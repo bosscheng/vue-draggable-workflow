@@ -1558,9 +1558,7 @@
 
             },
 
-
             handleSort() {
-                // this.$alert('开发中。。。')
                 this.$_updatePosition();
             },
 
@@ -1577,7 +1575,6 @@
             },
 
             handleUndo() {
-                // this.$alert('开发中......');
                 if (!this.canUndo) {
                     return;
                 }
@@ -1613,7 +1610,6 @@
                     flowItem.left = this.getFlowItemInitLeft();
                 } else {
                     const preFlowItem = this.getFlow(flowItem.prev[0]);
-
                     // pre flow item
                     if (preFlowItem) {
                         // top
@@ -1633,6 +1629,7 @@
                         } else if (this.isExpandFlowItem(preFlowItem.type)) {
                             // todo 待完成。
                         } else {
+                            // use pre left
                             flowItem.left = preFlowItem.left;
                         }
 
@@ -1648,29 +1645,56 @@
             },
 
             // update position expand and next
+            // todo
             $_updatePositionExpandList() {
                 const expandList = this.flowList.filter((flowItem) => {
                     return this.isExpandFlowItem(flowItem.type);
                 });
 
                 if (expandList.length > 0) {
+                    // down -> up
                     for (let i = expandList.length; i >= 0; i--) {
-                        const expandItem = expandList[i];
+                        const expandFlowItem = expandList[i];
+                        expandFlowItem.next.forEach((expandFlowItemChild) => {
 
+                        })
                     }
                 }
             },
 
             //
-            $_getFlowItemRect(flowItem) {
+            $_getNextFlowItemRect(flowItem) {
                 let result = {
                     left: 0,
-                    right: 0
+                    right: 0,
+                    width: 0
                 };
+                //
                 flowItem.next.forEach((flowItemUuid) => {
+                    const tempItem = this.getFlow(flowItemUuid);
+                    if (!result.left && !result.right) {
+                        result.left = tempItem.left;
+                        result.right = tempItem.right;
+                    } else {
+                        if (result.left >= tempItem.left) {
+                            result.left = tempItem.left;
+                        } else if (result.right <= tempItem.left) {
+                            result.right = tempItem.left;
+                        }
+                    }
 
+                    if (tempItem.next && tempItem.next.length > 0) {
+                        let nextPosition = this.$_getNextFlowItemRect(tempItem);
+                        if (result.left >= nextPosition.left) {
+                            result.left = nextPosition.left;
+                        }
+                        if (result.right <= nextPosition.left) {
+                            result.right = nextPosition.left;
+                        }
+                    }
                 });
 
+                result.width = result.right - result.left;
 
                 return result;
             },
