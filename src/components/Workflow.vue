@@ -925,11 +925,17 @@
                         // add end flow item and remove next all
                         let prevFlowId = this.dialogObj.flowPreUuid;
                         let nextFlowId = this.dialogObj.flowNextUuid;
-                        this.deleteNextFlowItem(nextFlowId);
 
+                        const preFlow = this.getFlow(prevFlowId);
+                        let options = {};
+                        if (this.isHasMoreNextFlowItemByType(preFlow.type)) {
+                            const nextFlow = this.getFlow(nextFlowId);
+                            options.left = nextFlow.left;
+                        }
+                        this.deleteNextFlowItem(nextFlowId);
                         this.$nextTick(() => {
                             // temp
-                            let tempFlowUuid = this.addTempFlowItem(prevFlowId);
+                            let tempFlowUuid = this.addTempFlowItem(prevFlowId, options);
                             this.$nextTick(() => {
                                 this.handleAddFlowItem(flowItem.type, tempFlowUuid);
                             });
@@ -1102,9 +1108,16 @@
                 // if step is ifElse of Expand
                 // need delete next all flow
                 if (this.isHasMoreNextFlowItemByType(flowItemType)) {
+                    const options = {};
+                    const preFlow = this.getFlow(preFlowId);
+                    //
+                    if (this.isHasMoreNextFlowItemByType(preFlow.type)) {
+                        const nextFlow = this.getFlow(nextFlowId);
+                        options.left = nextFlow.left;
+                    }
                     this.deleteNextFlowItem(nextFlowId);
                     this.$nextTick(() => {
-                        let tempFlowUuid = this.addTempFlowItem(preFlowId);
+                        let tempFlowUuid = this.addTempFlowItem(preFlowId, options);
                         let tempFlowItem = this.getFlow(tempFlowUuid);
                         tempFlowItem.formData = formData;
                         this.$nextTick(() => {
@@ -1122,10 +1135,12 @@
                 // update flow position
                 let prevFlowItem = this.getFlow(preFlowId);
                 let nextFlowItem = this.getFlow(nextFlowId);
+
+                let options = {};
                 // use next flow item's left
-                let options = {
-                    left: nextFlowItem.left
-                };
+                if (this.isHasMoreNextFlowItemByType(prevFlowItem.type)) {
+                    options.left = nextFlowItem.left;
+                }
                 //
                 let flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
                 //
@@ -1266,8 +1281,8 @@
 
 
             // temp flow
-            addTempFlowItem(preUuid) {
-                let tempFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid);
+            addTempFlowItem(preUuid, options) {
+                let tempFlowUuid = this.createFlowItem(FLOW_ITEM_TYPE.tempNode, preUuid, options);
                 this.draggableFlowConnect(preUuid, tempFlowUuid);
                 return tempFlowUuid;
             },
