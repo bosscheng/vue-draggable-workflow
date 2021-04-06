@@ -1110,7 +1110,9 @@
                 if (this.isHasMoreNextFlowItemByType(flowItemType)) {
                     const options = {};
                     const preFlow = this.getFlow(preFlowId);
-                    //
+                    const isPreFlowExpandType = this.isExpandFlowItem(preFlow.type);
+                    let expandFormData = isPreFlowExpandType ? preFlow.formData : null;
+                    // pre flow is more next flow
                     if (this.isHasMoreNextFlowItemByType(preFlow.type)) {
                         const nextFlow = this.getFlow(nextFlowId);
                         options.left = nextFlow.left;
@@ -1122,6 +1124,12 @@
                         tempFlowItem.formData = formData;
                         this.$nextTick(() => {
                             this.handleAddFlowItem(flowItemType, tempFlowUuid);
+                            if (isPreFlowExpandType) {
+                                this.updateExpandFlowItemRuleGroup(expandFormData.ruleGroupList, nextFlowId, tempFlowUuid);
+                                let name = this.getExpandFlowItemName(preFlow, tempFlowUuid);
+                                this.createFlowItemLabel(preFlowId, tempFlowUuid, name);
+                                this.$_plumbRepaintEverything();
+                            }
                         });
                     });
                 } else {
