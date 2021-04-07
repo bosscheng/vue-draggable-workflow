@@ -16,6 +16,13 @@
 - [x] 清空数据
 - [x] 获取JSON数据
 
+
+# 解惑文章
+
+[基于vue和jsplumb的工作流编辑器开发](https://juejin.cn/post/6844904144264773639)
+
+[基于vue和jsplumb的工作流编辑器开发(二)](https://juejin.cn/post/6948313872503832612)
+
  
 # 部分截图
 
