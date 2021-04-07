@@ -230,7 +230,11 @@
 
     const FLOW_STEP_LENGTH = 120;
 
-    const FLOW_LEFT_STEP_LENGTH = 80;
+    //
+    // const FLOW_LEFT_STEP_LENGTH = 80;
+
+    const FLOW_LEFT_STEP_LENGTH = 130;
+
 
     const FLOW_IF_OFFSET_LENGTH = 30;
 
@@ -267,6 +271,7 @@
                 canvasDataRoom: 100,
                 toggleGridLine: true,
                 canUndo: false,
+                tempLayerMap: [],
             }
         },
         components: {
@@ -1582,7 +1587,7 @@
             },
 
             handleSort() {
-                this.$_updatePosition();
+                this.$_updatePosition2();
             },
 
             handleClear() {
@@ -1624,6 +1629,103 @@
                     this.$_updatePositionExpandList();
                     this.$_plumbRepaintEverything();
                 }
+            },
+
+            $_updatePosition2() {
+                this.tempLayerMap = [];
+                const startNode = _.find(this.flowList, (flowItem) => {
+                    return this.isStartFlowItem(flowItem);
+                });
+
+                this.tempLayerMap[0] = [startNode];
+                this.$_layoutChild(startNode, 1);
+                this.$_adjustChild();
+
+                this.$_plumbRepaintEverything();
+            },
+
+            $_adjustChild() {
+                let flowList = null;
+                for (let i = this.tempLayerMap.length - 1; i >= 0; i--) {
+                    flowList = this.tempLayerMap[i];
+                    flowList.forEach((flowItem, index) => {
+                        const leftFlowItem = flowList[index - 1];
+                        if (leftFlowItem && flowItem.left - leftFlowItem.left < FLOW_LEFT_STEP_LENGTH) {
+                            const parentFlowItem = this.$_findCommonParentNode(leftFlowItem, flowItem);
+                            const leftOffset = Math.abs(flowItem.left - leftFlowItem.left) + FLOW_LEFT_STEP_LENGTH;
+                            this.$_translateXTree(parentFlowItem, leftOffset);
+                            const prevFlowItem = this.getFlow(parentFlowItem.prev[0]);
+                            this.$_centerChild(prevFlowItem);
+                            i = this.tempLayerMap.length;
+                        }
+                    })
+                }
+            },
+
+            //
+            $_centerChild(preFlowItem) {
+                let leftOffset = 0;
+                if (preFlowItem.next && preFlowItem.next.length > 0) {
+
+                    if (preFlowItem.next.length === 1) {
+                        const nextFlowItem = this.getFlow(preFlowItem.next[0]);
+                        leftOffset = preFlowItem.left - nextFlowItem.left;
+                    } else {
+                        const nextFlowItemFirst = this.getFlow(preFlowItem.next[0]);
+                        const nextFlowItemLatest = this.getFlow(preFlowItem.next[preFlowItem.next.length - 1]);
+
+                        leftOffset = preFlowItem.left - (nextFlowItemFirst.left + (nextFlowItemLatest.left - nextFlowItemFirst.left) / 2);
+                    }
+
+                    if (leftOffset) {
+                        preFlowItem.next.forEach((nextFlowItemUUid) => {
+                            const nextFlowItem = this.getFlow(nextFlowItemUUid);
+                            this.$_translateXTree(nextFlowItem, leftOffset);
+                        })
+                    }
+                }
+            },
+
+            $_translateXTree(flowItem, offsetLeft) {
+                flowItem.left += offsetLeft;
+                if (flowItem.next && flowItem.next.length > 0) {
+                    flowItem.next.forEach((flowItemUuid) => {
+                        const tempFlowItem = this.getFlow(flowItemUuid);
+                        this.$_translateXTree(tempFlowItem, offsetLeft);
+                    })
+                }
+            },
+
+            $_findCommonParentNode(flowItem1, flowItem2) {
+                if (flowItem1.prev[0] === flowItem2.prev[0]) {
+                    return flowItem2;
+                } else {
+                    const flowItem1PreFlowItem = this.getFlow(flowItem1.prev[0]);
+                    const flowItem2PreFlowItem = this.getFlow(flowItem2.prev[0]);
+                    return this.$_findCommonParentNode(flowItem1PreFlowItem, flowItem2PreFlowItem);
+                }
+            },
+
+            //
+            $_layoutChild(pre, layer) {
+                const nextList = pre.next;
+                const nextListLength = nextList.length;
+
+                if (this.tempLayerMap[layer] === undefined) {
+                    this.tempLayerMap[layer] = [];
+                }
+
+                nextList.forEach((nextFlowUUid, index) => {
+                    const flowItem = this.getFlow(nextFlowUUid);
+                    flowItem.top = pre.top + FLOW_STEP_LENGTH;
+                    const startLeft = pre.left - (FLOW_LEFT_STEP_LENGTH * (nextListLength - 1)) / 2
+                    flowItem.left = startLeft + FLOW_LEFT_STEP_LENGTH * index;
+                    this.tempLayerMap[layer].push(flowItem);
+                    if (flowItem.next && flowItem.next.length > 0) {
+                        this.$_layoutChild(flowItem, layer + 1);
+                    }
+                })
+
             },
 
             // update position item and next
