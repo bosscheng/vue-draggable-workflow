@@ -431,7 +431,6 @@
             },
 
             $_updateMemoryList() {
-                console.log('$_updateMemoryList');
                 const tempItem = this.formatData();
 
                 // max store is 10
@@ -439,7 +438,6 @@
                     MEMORY_LIST.shift();
                 }
                 MEMORY_LIST.push(tempItem);
-                console.log(MEMORY_LIST);
 
                 this.$_updateCanUndoBtn();
             },
@@ -1587,7 +1585,7 @@
             },
 
             handleSort() {
-                this.$_updatePosition2();
+                this.$_updatePosition();
             },
 
             handleClear() {
@@ -1620,22 +1618,14 @@
             },
 
             $_updatePosition() {
-                const startNode = _.find(this.flowList, (flowItem) => {
-                    return this.isStartFlowItem(flowItem);
-                });
-
-                if (startNode) {
-                    this.$_updatePositionItemAndNext(startNode);
-                    this.$_updatePositionExpandList();
-                    this.$_plumbRepaintEverything();
-                }
-            },
-
-            $_updatePosition2() {
                 this.tempLayerMap = [];
                 const startNode = _.find(this.flowList, (flowItem) => {
                     return this.isStartFlowItem(flowItem);
                 });
+
+                // init start flow item
+                startNode.top = FLOW_START_STEP_TOP;
+                startNode.left = this.getFlowItemInitLeft();
 
                 this.tempLayerMap[0] = [startNode];
                 this.$_layoutChild(startNode, 1);
@@ -1725,105 +1715,7 @@
                         this.$_layoutChild(flowItem, layer + 1);
                     }
                 })
-
             },
-
-            // update position item and next
-            $_updatePositionItemAndNext(flowItem) {
-                if (this.isStartFlowItem(flowItem)) {
-                    flowItem.top = FLOW_START_STEP_TOP;
-                    flowItem.left = this.getFlowItemInitLeft();
-                } else {
-                    const preFlowItem = this.getFlow(flowItem.prev[0]);
-                    // pre flow item
-                    if (preFlowItem) {
-                        // top
-                        flowItem.top = preFlowItem.top + FLOW_STEP_LENGTH;
-                        if (this.isIfFlowItem(preFlowItem.type)) {
-                            if (flowItem.uuid === preFlowItem.nextIfId) {
-                                flowItem.left = preFlowItem.left - FLOW_LEFT_STEP_LENGTH;
-                                if (this.isIfFlowItem(flowItem.type)) {
-                                    flowItem.left -= FLOW_IF_OFFSET_LENGTH;
-                                }
-                            } else {
-                                flowItem.left = preFlowItem.left + FLOW_LEFT_STEP_LENGTH;
-                                if (this.isIfFlowItem(flowItem.type)) {
-                                    flowItem.left += FLOW_IF_OFFSET_LENGTH;
-                                }
-                            }
-                        } else if (this.isExpandFlowItem(preFlowItem.type)) {
-                            // todo 待完成。
-                        } else {
-                            // use pre left
-                            flowItem.left = preFlowItem.left;
-                        }
-
-                    }
-                }
-
-                flowItem.next.forEach((uuid) => {
-                    const _flowItem = this.getFlow(uuid);
-                    if (_flowItem) {
-                        this.$_updatePositionItemAndNext(_flowItem);
-                    }
-                })
-            },
-
-            // update position expand and next
-            // todo
-            $_updatePositionExpandList() {
-                const expandList = this.flowList.filter((flowItem) => {
-                    return this.isExpandFlowItem(flowItem.type);
-                });
-
-                if (expandList.length > 0) {
-                    // down -> up
-                    for (let i = expandList.length; i >= 0; i--) {
-                        const expandFlowItem = expandList[i];
-                        expandFlowItem.next.forEach((expandFlowItemChild) => {
-
-                        })
-                    }
-                }
-            },
-
-            //
-            $_getNextFlowItemRect(flowItem) {
-                let result = {
-                    left: 0,
-                    right: 0,
-                    width: 0
-                };
-                //
-                flowItem.next.forEach((flowItemUuid) => {
-                    const tempItem = this.getFlow(flowItemUuid);
-                    if (!result.left && !result.right) {
-                        result.left = tempItem.left;
-                        result.right = tempItem.right;
-                    } else {
-                        if (result.left >= tempItem.left) {
-                            result.left = tempItem.left;
-                        } else if (result.right <= tempItem.left) {
-                            result.right = tempItem.left;
-                        }
-                    }
-
-                    if (tempItem.next && tempItem.next.length > 0) {
-                        let nextPosition = this.$_getNextFlowItemRect(tempItem);
-                        if (result.left >= nextPosition.left) {
-                            result.left = nextPosition.left;
-                        }
-                        if (result.right <= nextPosition.left) {
-                            result.right = nextPosition.left;
-                        }
-                    }
-                });
-
-                result.width = result.right - result.left;
-
-                return result;
-            },
-
 
             $_doClear(needInit) {
                 const startNode = _.find(this.flowList, (flowItem) => {
