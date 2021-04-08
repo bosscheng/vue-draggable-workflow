@@ -997,7 +997,8 @@
                         }
                         this.addExpandTempFlowItem(tempFlowId, newFlowItem.formData.ruleGroupList);
                     }
-                    this.$_plumbRepaintEverything();
+                    this.$_updateOneFlowPosition(newFlowItem);
+                    // this.$_plumbRepaintEverything();
                 }
 
                 return newFlowItem;
@@ -1434,6 +1435,7 @@
                             });
                         }
                     }
+                    //
                     this.initDialog();
 
                 }).catch(() => {
@@ -1634,6 +1636,12 @@
                 this.$_plumbRepaintEverything();
             },
 
+            $_updateOneFlowPosition(flowItem) {
+                if (this.isHasMoreNextFlowItemByType(flowItem.type)) {
+
+                }
+            },
+
             $_adjustChild() {
                 let flowList = null;
                 for (let i = this.tempLayerMap.length - 1; i >= 0; i--) {
@@ -1670,7 +1678,9 @@
                     if (leftOffset) {
                         preFlowItem.next.forEach((nextFlowItemUUid) => {
                             const nextFlowItem = this.getFlow(nextFlowItemUUid);
-                            this.$_translateXTree(nextFlowItem, leftOffset);
+                            if (nextFlowItem) {
+                                this.$_translateXTree(nextFlowItem, leftOffset);
+                            }
                         })
                     }
                 }
@@ -1697,9 +1707,10 @@
             },
 
             //
-            $_layoutChild(pre, layer) {
-                const nextList = pre.next;
+            $_layoutChild(preFlow, layer) {
+                const nextList = preFlow.next;
                 const nextListLength = nextList.length;
+
 
                 if (this.tempLayerMap[layer] === undefined) {
                     this.tempLayerMap[layer] = [];
@@ -1707,12 +1718,15 @@
 
                 nextList.forEach((nextFlowUUid, index) => {
                     const flowItem = this.getFlow(nextFlowUUid);
-                    flowItem.top = pre.top + FLOW_STEP_LENGTH;
-                    const startLeft = pre.left - (FLOW_LEFT_STEP_LENGTH * (nextListLength - 1)) / 2
-                    flowItem.left = startLeft + FLOW_LEFT_STEP_LENGTH * index;
-                    this.tempLayerMap[layer].push(flowItem);
-                    if (flowItem.next && flowItem.next.length > 0) {
-                        this.$_layoutChild(flowItem, layer + 1);
+                    if (flowItem) {
+                        console.log('nextFlowUUid:', nextFlowUUid, 'nextFlow:', flowItem, 'preFlow:', preFlow);
+                        flowItem.top = preFlow.top + FLOW_STEP_LENGTH;
+                        const startLeft = preFlow.left - (FLOW_LEFT_STEP_LENGTH * (nextListLength - 1)) / 2
+                        flowItem.left = startLeft + FLOW_LEFT_STEP_LENGTH * index;
+                        this.tempLayerMap[layer].push(flowItem);
+                        if (flowItem.next && flowItem.next.length > 0) {
+                            this.$_layoutChild(flowItem, layer + 1);
+                        }
                     }
                 })
             },
