@@ -231,9 +231,9 @@
     const FLOW_STEP_LENGTH = 120;
 
     //
-    // const FLOW_LEFT_STEP_LENGTH = 80;
+    const FLOW_LEFT_STEP_LENGTH = 80;
 
-    const FLOW_LEFT_STEP_LENGTH = 130;
+    const FLOW_LEFT_STEP_LENGTH_MAX = 130;
 
 
     const FLOW_IF_OFFSET_LENGTH = 30;
@@ -376,7 +376,6 @@
                             flowItem.formData = this.getFlowItemFormData(step);
                         }
                     }
-
                     flowList.push(flowItem);
                 });
 
@@ -396,6 +395,37 @@
                         });
                     }
                 });
+
+                // 更新 next 顺序
+                flowList.forEach((flowItem) => {
+                    if (this.isIfFlowItem(flowItem.type)) {
+                        const nextIfFlowItem = _.find(flowList, (item) => {
+                            return item.uuid === flowItem.nextIfId;
+                        });
+                        const nextElseFlowItem = _.find(flowList, (item) => {
+                            return item.uuid === flowItem.nextElseId;
+                        });
+                        if (nextIfFlowItem.left < nextElseFlowItem.left) {
+                            flowItem.next = [nextIfFlowItem.uuid, nextElseFlowItem.uuid];
+                        } else {
+                            flowItem.next = [nextElseFlowItem.uuid, nextIfFlowItem.uuid];
+                        }
+                    } else if (this.isExpandFlowItem(flowItem.type)) {
+                        const nextList = flowItem.next.map((flowItemId) => {
+                            return _.find(flowList, (item) => {
+                                return item.uuid === flowItemId;
+                            });
+                        });
+                        nextList.sort((a, b) => {
+                            return a.left - b.left;
+                        });
+                        flowItem.next = nextList.map((flowItem) => {
+                            return flowItem.uuid;
+                        })
+                    }
+                });
+
+
                 this.flowList = flowList;
 
                 this.$nextTick(() => {
@@ -1283,6 +1313,7 @@
                 return flowItem;
             },
 
+
             getFlowIndex(flowUuid) {
                 let index = _.findIndex(this.flowList, (item) => {
                     return item.uuid === flowUuid;
@@ -1648,9 +1679,9 @@
                     flowList = this.tempLayerMap[i];
                     flowList.forEach((flowItem, index) => {
                         const leftFlowItem = flowList[index - 1];
-                        if (leftFlowItem && flowItem.left - leftFlowItem.left < FLOW_LEFT_STEP_LENGTH) {
+                        if (leftFlowItem && flowItem.left - leftFlowItem.left < FLOW_LEFT_STEP_LENGTH_MAX) {
                             const parentFlowItem = this.$_findCommonParentNode(leftFlowItem, flowItem);
-                            const leftOffset = Math.abs(flowItem.left - leftFlowItem.left) + FLOW_LEFT_STEP_LENGTH;
+                            const leftOffset = Math.abs(flowItem.left - leftFlowItem.left) + FLOW_LEFT_STEP_LENGTH_MAX;
                             this.$_translateXTree(parentFlowItem, leftOffset);
                             const prevFlowItem = this.getFlow(parentFlowItem.prev[0]);
                             this.$_centerChild(prevFlowItem);
@@ -1721,8 +1752,8 @@
                     if (flowItem) {
                         console.log('nextFlowUUid:', nextFlowUUid, 'nextFlow:', flowItem, 'preFlow:', preFlow);
                         flowItem.top = preFlow.top + FLOW_STEP_LENGTH;
-                        const startLeft = preFlow.left - (FLOW_LEFT_STEP_LENGTH * (nextListLength - 1)) / 2
-                        flowItem.left = startLeft + FLOW_LEFT_STEP_LENGTH * index;
+                        const startLeft = preFlow.left - (FLOW_LEFT_STEP_LENGTH_MAX * (nextListLength - 1)) / 2
+                        flowItem.left = startLeft + FLOW_LEFT_STEP_LENGTH_MAX * index;
                         this.tempLayerMap[layer].push(flowItem);
                         if (flowItem.next && flowItem.next.length > 0) {
                             this.$_layoutChild(flowItem, layer + 1);
