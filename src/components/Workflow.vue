@@ -472,6 +472,32 @@
                 this.$_updateCanUndoBtn();
             },
 
+            //
+            $_sortFlowItemNext(tempFlowItem) {
+                const preFlowItem = this.getFlow(tempFlowItem.prev[0]);
+
+                if (this.isExpandFlowItem(preFlowItem.type)) {
+                    const nextList = preFlowItem.next.map((flowItemId) => {
+                        return this.getFlow(flowItemId);
+                    });
+                    nextList.sort((a, b) => {
+                        return a.left - b.left;
+                    });
+                    preFlowItem.next = nextList.map((flowItem) => {
+                        return flowItem.uuid;
+                    })
+                } else if (this.isIfFlowItem(preFlowItem.type)) {
+                    const nextIfFlowItem = this.getFlow(preFlowItem.nextIfId);
+                    const nextElseFlowItem = this.getFlow(preFlowItem.nextElseId);
+                    if (nextIfFlowItem.left < nextElseFlowItem.left) {
+                        preFlowItem.next = [nextIfFlowItem.uuid, nextElseFlowItem.uuid];
+                    } else {
+                        preFlowItem.next = [nextElseFlowItem.uuid, nextIfFlowItem.uuid];
+                    }
+                }
+            },
+
+
             $_updateCanUndoBtn() {
                 this.canUndo = MEMORY_LIST.length > 0;
             },
@@ -1423,6 +1449,11 @@
 
                 flowItem.left = Number(left);
                 flowItem.top = Number(top);
+
+                if (!_isClick) {
+                    this.$_sortFlowItemNext(flowItem);
+                }
+
                 target.dataset.isClick = _isClick;
             },
 
