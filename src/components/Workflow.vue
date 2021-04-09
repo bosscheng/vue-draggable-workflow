@@ -2,9 +2,14 @@
     <div class="flow-layout">
         <div class="flow-editor">
             <div class="flow-tools">
-                <el-tooltip class="item" effect="dark" content="自动排列" placement="top-start">
+                <el-tooltip class="item" effect="dark" content="手动排列" placement="top-start">
                     <div class="tool-item" title="" @click="handleSort">
                         <span class="icon-duiqi"></span>
+                    </div>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="自动排列" placement="top-start">
+                    <div class="tool-item" @click="handleToggleAutoSort">
+                        <span :class="toggleSortClass"></span>
                     </div>
                 </el-tooltip>
                 <el-tooltip class="item" effect="dark" content="撤销" placement="top-start">
@@ -270,6 +275,7 @@
                 movedFlowItem: undefined, //  moved
                 canvasDataRoom: 100,
                 toggleGridLine: true,
+                toggleAutoSort: false,
                 canUndo: false,
                 tempLayerMap: [],
             }
@@ -308,6 +314,10 @@
             },
             toggleGridLineClass() {
                 return this.toggleGridLine ? 'icon-wangge-open' : 'icon-wangge-close';
+            },
+
+            toggleSortClass() {
+                return this.toggleAutoSort ? 'icon-auto-sort-open' : 'icon-auto-sort-close';
             }
         },
         methods: {
@@ -396,7 +406,7 @@
                     }
                 });
 
-                // 更新 next 顺序
+                // update next list sort
                 flowList.forEach((flowItem) => {
                     if (this.isIfFlowItem(flowItem.type)) {
                         const nextIfFlowItem = _.find(flowList, (item) => {
@@ -681,7 +691,11 @@
                             if (lastItem) {
                                 lastItemList.push(lastItem);
                                 if (lastItem.next.indexOf(_uuid) === -1) {
-                                    lastItem.next.push(_uuid);
+                                    if (!_.isUndefined(options.index) && options.index !== -1) {
+                                        lastItem.next.splice(options.index, 0, _uuid);
+                                    } else {
+                                        lastItem.next.push(_uuid);
+                                    }
                                 }
                             }
                         });
@@ -932,6 +946,7 @@
                 }).then(() => {
                     this.$_updateMemoryList();
                     this.deleteFlowItem(flowItem);
+                    this.$_updatePositionByAutoSort();
                 }).catch((e) => {
                     console.warn(e);
                 });
@@ -1053,7 +1068,8 @@
                         }
                         this.addExpandTempFlowItem(tempFlowId, newFlowItem.formData.ruleGroupList);
                     }
-                    this.$_updateOneFlowPosition(newFlowItem);
+                    this.$_updatePositionByAutoSort();
+                    //this.$_updateOneFlowPosition(newFlowItem);
                     // this.$_plumbRepaintEverything();
                 }
 
@@ -1168,18 +1184,20 @@
                 // if step is ifElse of Expand
                 // need delete next all flow
                 if (this.isHasMoreNextFlowItemByType(flowItemType)) {
-                    const options = {};
+                    let _options = {};
                     const preFlow = this.getFlow(preFlowId);
                     const isPreFlowExpandType = this.isExpandFlowItem(preFlow.type);
                     let expandFormData = isPreFlowExpandType ? preFlow.formData : null;
                     // pre flow is more next flow
                     if (this.isHasMoreNextFlowItemByType(preFlow.type)) {
                         const nextFlow = this.getFlow(nextFlowId);
-                        options.left = nextFlow.left;
+                        _options.left = nextFlow.left;
+                        _options.index = preFlow.next.indexOf(nextFlowId);
                     }
+                    //
                     this.deleteNextFlowItem(nextFlowId);
                     this.$nextTick(() => {
-                        let tempFlowUuid = this.addTempFlowItem(preFlowId, options);
+                        let tempFlowUuid = this.addTempFlowItem(preFlowId, _options);
                         let tempFlowItem = this.getFlow(tempFlowUuid);
                         tempFlowItem.formData = formData;
                         this.$nextTick(() => {
@@ -1190,6 +1208,7 @@
                                 this.createFlowItemLabel(preFlowId, tempFlowUuid, name);
                                 this.$_plumbRepaintEverything();
                             }
+                            this.$_updatePositionByAutoSort();
                         });
                     });
                 } else {
@@ -1229,6 +1248,8 @@
                             this.createFlowItemLabel(preFlowId, flowItemUuid, options.offsetLeft > 0 ? '是' : '否`');
                         }
                     }
+                    //
+                    this.$_updatePositionByAutoSort();
                 });
             },
 
@@ -1278,7 +1299,13 @@
                 // prev flow item add current flow
                 let flowItemIndex = preFlowItem.next.indexOf(flowItemUuid);
                 if (flowItemIndex === -1) {
-                    preFlowItem.next.push(flowItemUuid);
+                    preFlowItem.next.splice(preNextIndex, 0, flowItemUuid);
+                } else {
+                    // update position
+                    if (flowItemIndex !== preNextIndex) {
+                        preFlowItem.next.splice(flowItemIndex, 1);
+                        preFlowItem.next.splice(preNextIndex, 0, flowItemUuid);
+                    }
                 }
 
                 // has one prev
@@ -1317,6 +1344,13 @@
 
                 if (!flowItem) {
                     return;
+                }
+
+                //
+                const preFlowItem = this.getFlow(flowItem.prev[0]);
+                const _preIndex = preFlowItem.next.indexOf(flowUuid)
+                if (_preIndex !== -1) {
+                    preFlowItem.next.splice(_preIndex, 1);
                 }
 
                 this.flowList.splice(index, 1);
@@ -1664,6 +1698,20 @@
                 });
             },
 
+            handleToggleAutoSort() {
+                this.toggleAutoSort = !this.toggleAutoSort;
+
+                this.$_updatePositionByAutoSort();
+            },
+
+            $_updatePositionByAutoSort() {
+                if (this.toggleAutoSort) {
+                    this.$nextTick(() => {
+                        this.$_updatePosition();
+                    })
+                }
+            },
+
             handleUndo() {
                 if (!this.canUndo) {
                     return;
@@ -1682,15 +1730,14 @@
             },
 
             $_updatePosition() {
+                console.log('$_updatePosition');
                 this.tempLayerMap = [];
                 const startNode = _.find(this.flowList, (flowItem) => {
                     return this.isStartFlowItem(flowItem);
                 });
-
                 // init start flow item
                 startNode.top = FLOW_START_STEP_TOP;
                 startNode.left = this.getFlowItemInitLeft();
-
                 this.tempLayerMap[0] = [startNode];
                 this.$_layoutChild(startNode, 1);
                 this.$_adjustChild();
@@ -1727,6 +1774,7 @@
                 let leftOffset = 0;
                 if (preFlowItem.next && preFlowItem.next.length > 0) {
 
+                    // 单个的 next
                     if (preFlowItem.next.length === 1) {
                         const nextFlowItem = this.getFlow(preFlowItem.next[0]);
                         leftOffset = preFlowItem.left - nextFlowItem.left;
@@ -1753,7 +1801,9 @@
                 if (flowItem.next && flowItem.next.length > 0) {
                     flowItem.next.forEach((flowItemUuid) => {
                         const tempFlowItem = this.getFlow(flowItemUuid);
-                        this.$_translateXTree(tempFlowItem, offsetLeft);
+                        if (tempFlowItem) {
+                            this.$_translateXTree(tempFlowItem, offsetLeft);
+                        }
                     })
                 }
             },
@@ -1773,7 +1823,6 @@
                 const nextList = preFlow.next;
                 const nextListLength = nextList.length;
 
-
                 if (this.tempLayerMap[layer] === undefined) {
                     this.tempLayerMap[layer] = [];
                 }
@@ -1781,7 +1830,6 @@
                 nextList.forEach((nextFlowUUid, index) => {
                     const flowItem = this.getFlow(nextFlowUUid);
                     if (flowItem) {
-                        console.log('nextFlowUUid:', nextFlowUUid, 'nextFlow:', flowItem, 'preFlow:', preFlow);
                         flowItem.top = preFlow.top + FLOW_STEP_LENGTH;
                         const startLeft = preFlow.left - (FLOW_LEFT_STEP_LENGTH_MAX * (nextListLength - 1)) / 2
                         flowItem.left = startLeft + FLOW_LEFT_STEP_LENGTH_MAX * index;

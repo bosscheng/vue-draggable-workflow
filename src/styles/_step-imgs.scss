@@ -90,3 +90,13 @@
   background: url("../assets/icon-undo-disable.png") no-repeat center;
   @include stem-img(25px);
 }
+
+.icon-auto-sort-open{
+  background: url("../assets/icon-auto-sort-open.png") no-repeat center;
+  @include stem-img(25px);
+}
+
+.icon-auto-sort-close{
+  background: url("../assets/icon-auto-sort-close.png") no-repeat center;
+  @include stem-img(25px);
+}
