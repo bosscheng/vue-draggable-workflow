@@ -219,7 +219,7 @@
     import NodeNodeForm from './nodeNodeForm';
     import IfNodeForm from './ifNodeForm';
     import ExpandNodeForm from './expandNodeForm';
-    import {workflowItem, workflowItem2} from "../mock/mock";
+    import {workflowItem, workflowItem2, workflowItem3} from "../mock/mock";
 
     import {jsPlumb} from 'jsplumb';
     import _ from 'lodash';
@@ -245,7 +245,7 @@
 
     const FLOW_START_STEP_TOP = 30;
 
-    const INIT_DATA = workflowItem2;
+    const INIT_DATA = workflowItem3;
 
     export default {
         name: "Workflow",
@@ -1068,11 +1068,7 @@
                         }
                         this.addExpandTempFlowItem(tempFlowId, newFlowItem.formData.ruleGroupList);
                     }
-                    this.$_updatePositionByAutoSort();
-                    //this.$_updateOneFlowPosition(newFlowItem);
-                    // this.$_plumbRepaintEverything();
                 }
-
                 return newFlowItem;
             },
 
@@ -1523,6 +1519,7 @@
                         // create
                         if (flowItem.type === FLOW_ITEM_TYPE.tempNode) {
                             this.handleAddFlowItem(this.dialogObj.editType, flowItem.uuid);
+                            this.$_updatePositionByAutoSort();
                         } else {
                             // update flow item
                             this.handleUpdateFlowItem({
@@ -1742,8 +1739,32 @@
                 this.$_layoutChild(startNode, 1);
                 this.$_adjustChild();
 
+                const firstLift = this.$_getFirstLeft();
+                if (firstLift < 0) {
+                    const offset = -firstLift;
+                    this.$_offsetFlowListLeft(offset);
+                }
+
                 this.$_plumbRepaintEverything();
             },
+
+            $_getFirstLeft() {
+                let result = this.flowList[0].left;
+                this.flowList.forEach((flowItem) => {
+                    if (result > flowItem.left) {
+                        result = flowItem.left;
+                    }
+                });
+
+                return result;
+            },
+
+            $_offsetFlowListLeft(offset) {
+                this.flowList.forEach((flowItem) => {
+                    flowItem.left += offset;
+                });
+            },
+
 
             $_updateOneFlowPosition(flowItem) {
                 if (this.isHasMoreNextFlowItemByType(flowItem.type)) {
@@ -1859,6 +1880,7 @@
 
             handleGetData() {
                 const formData = this.formatData();
+                console.log('formData', JSON.stringify(formData));
                 const formatter = new JSONFormatter(formData, 3);
                 this.dialogVisible = true;
                 this.$nextTick(() => {
