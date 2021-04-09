@@ -275,7 +275,7 @@
                 movedFlowItem: undefined, //  moved
                 canvasDataRoom: 100,
                 toggleGridLine: true,
-                toggleAutoSort: false,
+                toggleAutoSort: true,
                 canUndo: false,
                 tempLayerMap: [],
             }
@@ -292,7 +292,7 @@
             this.$options.jsPlumb = jsPlumb.getInstance();
             this.initJsPlumb();
             if (INIT_DATA.steps.length > 0) {
-                this.updateFlow(INIT_DATA);
+                this.updateFlow(INIT_DATA, this.$_updatePositionByAutoSort);
             } else {
                 this.initFlow();
             }
