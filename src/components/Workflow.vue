@@ -1342,11 +1342,12 @@
                     return;
                 }
 
-                //
-                const preFlowItem = this.getFlow(flowItem.prev[0]);
-                const _preIndex = preFlowItem.next.indexOf(flowUuid)
-                if (_preIndex !== -1) {
-                    preFlowItem.next.splice(_preIndex, 1);
+                if (flowItem.prev[0]) {
+                    const preFlowItem = this.getFlow(flowItem.prev[0]);
+                    const _preIndex = preFlowItem.next.indexOf(flowUuid);
+                    if (_preIndex !== -1) {
+                        preFlowItem.next.splice(_preIndex, 1);
+                    }
                 }
 
                 this.flowList.splice(index, 1);
