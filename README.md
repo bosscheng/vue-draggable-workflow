@@ -26,6 +26,29 @@
 
 [基于vue和jsplumb的工作流编辑器开发(二)](https://juejin.cn/post/6948313872503832612)
 
+
+# 执行
+
+
+> 依赖 yarn 或者 npm
+
+## step1 安装依赖
+
+```
+yarn install
+```
+## step2 开发调试
+
+```
+yarn run dev
+```
+
+## step3 编译部署
+
+```
+yarn run build
+```
+
  
 # 部分截图
 
