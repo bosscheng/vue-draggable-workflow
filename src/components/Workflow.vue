@@ -1220,9 +1220,14 @@ export default {
       let nextFlowItem = this.getFlow(nextFlowId);
 
       let options = {};
+      let isIf = false;
       // use next flow item's left
       if (this.isHasMoreNextFlowItemByType(prevFlowItem.type)) {
         options.left = nextFlowItem.left;
+
+        if (this.isIfFlowItem(prevFlowItem.type)) {
+          isIf = prevFlowItem.nextIfId === nextFlowId;
+        }
       }
       //
       let flowItemUuid = this.createFlowItem(flowItemType, preFlowId, options);
@@ -1241,7 +1246,7 @@ export default {
         } else {
           this.updateBetweenFlowItem(flowItemUuid, nextFlowId, preFlowId);
           if (this.isIfFlowItem(prevFlowItem.type)) {
-            this.createFlowItemLabel(preFlowId, flowItemUuid, options.offsetLeft > 0 ? '是' : '否`');
+            this.createFlowItemLabel(preFlowId, flowItemUuid, isIf ? '是' : '否`');
           }
         }
         //
