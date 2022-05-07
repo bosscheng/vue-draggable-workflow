@@ -755,7 +755,7 @@ export default {
       else if (this.isHasMoreNextFlowItem(flowItem)) {
         //  delete next flow item
         this.deleteNextFlowItem(flowItem.uuid);
-
+        // pre flow item
         const preFlowItem = this.getFlow(flowItem.prev[0]);
         // pre is ifElse
         if (this.isIfFlowItem(preFlowItem.type)) {
@@ -795,14 +795,18 @@ export default {
       }
 
       // next flow item delete perv id
+      let nextFlowListPrevIndex = -1;
       nextFlowList.forEach((item) => {
         let index = item.prev.indexOf(flowItem.uuid);
+        nextFlowListPrevIndex = index;
         item.prev.splice(index, 1);
       });
 
       // prev flow item delete next id
+      let prevFlowListNextIndex = -1;
       prevFlowList.forEach((item) => {
         let index = item.next.indexOf(flowItem.uuid);
+        prevFlowListNextIndex = index;
         item.next.splice(index, 1);
       });
       // todo
@@ -816,8 +820,18 @@ export default {
 
         if (preFlowItem && nextFlowItem) {
           // add new id
-          preFlowItem.next.push(nextFlowItem.uuid);
-          nextFlowItem.prev.push(preFlowItem.uuid);
+          if (prevFlowListNextIndex !== -1) {
+            preFlowItem.next.splice(prevFlowListNextIndex, 0, nextFlowItem.uuid);
+          } else {
+            preFlowItem.next.push(nextFlowItem.uuid);
+          }
+
+          if (nextFlowListPrevIndex !== -1) {
+            nextFlowItem.prev.splice(nextFlowListPrevIndex, 0, preFlowItem.uuid);
+          } else {
+            nextFlowItem.prev.push(preFlowItem.uuid);
+          }
+
           // drag connection
           this.draggableFlowConnect(preFlowItem.uuid, nextFlowItem.uuid, true);
           // connection label
