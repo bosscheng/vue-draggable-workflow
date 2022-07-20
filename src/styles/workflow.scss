@@ -27,36 +27,73 @@
   overflow: auto;
   z-index: 0;
   cursor: grab;
+  transition: all 0.3s ease-out;
 }
 
 .canvas-container.show-grid[data-zoom="100"] {
   background-image: linear-gradient(#eee 1px, transparent 0), linear-gradient(90deg, #eee 1px, transparent 0), linear-gradient(#f5f5f5 1px, transparent 0), linear-gradient(90deg, #f5f5f5 1px, transparent 0);
   background-size: 75px 75px, 75px 75px, 15px 15px, 15px 15px;
+  &:before{
+    background-size: 75px 10px, 5px 5px;
+  }
+  &:after {
+    background-size: 10px 75px, 5px 5px;
+  }
 }
 
 .canvas-container.show-grid[data-zoom="90"] {
   background-image: linear-gradient(#eee 1px, transparent 0), linear-gradient(90deg, #eee 1px, transparent 0), linear-gradient(#f5f5f5 1px, transparent 0), linear-gradient(90deg, #f5f5f5 1px, transparent 0);
   background-size: 70px 70px, 70px 70px, 14px 14px, 14px 14px;
+  &:before{
+    background-size: 70px 10px, 5px 5px;
+  }
+  &:after {
+    background-size: 10px 70px, 5px 5px;
+  }
 }
 
 .canvas-container.show-grid[data-zoom="80"] {
   background-image: linear-gradient(#eee 1px, transparent 0), linear-gradient(90deg, #eee 1px, transparent 0), linear-gradient(#f5f5f5 1px, transparent 0), linear-gradient(90deg, #f5f5f5 1px, transparent 0);
   background-size: 60px 60px, 60px 60px, 12px 12px, 12px 12px;
+  &:before{
+    background-size: 60px 10px, 5px 5px;
+  }
+  &:after {
+    background-size: 10px 60px, 5px 5px;
+  }
 }
 
 .canvas-container.show-grid[data-zoom="70"] {
   background-image: linear-gradient(#eee 1px, transparent 0), linear-gradient(90deg, #eee 1px, transparent 0), linear-gradient(#f5f5f5 1px, transparent 0), linear-gradient(90deg, #f5f5f5 1px, transparent 0);
   background-size: 55px 55px, 55px 55px, 11px 11px, 11px 11px;
+  &:before{
+    background-size: 55px 10px, 5px 5px;
+  }
+  &:after {
+    background-size: 10px 55px, 5px 5px;
+  }
 }
 
 .canvas-container.show-grid[data-zoom="60"] {
   background-image: linear-gradient(#eee 1px, transparent 0), linear-gradient(90deg, #eee 1px, transparent 0), linear-gradient(#f5f5f5 1px, transparent 0), linear-gradient(90deg, #f5f5f5 1px, transparent 0);
   background-size: 45px 45px, 45px 45px, 9px 9px, 9px 9px;
+  &:before{
+    background-size: 45px 10px, 5px 5px;
+  }
+  &:after {
+    background-size: 10px 45px, 5px 5px;
+  }
 }
 
 .canvas-container.show-grid[data-zoom="50"] {
   background-image: linear-gradient(#eee 1px, transparent 0), linear-gradient(90deg, #eee 1px, transparent 0), linear-gradient(#f5f5f5 1px, transparent 0), linear-gradient(90deg, #f5f5f5 1px, transparent 0);
   background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+  &:before{
+    background-size: 40px 10px, 5px 5px;
+  }
+  &:after {
+    background-size: 10px 40px, 5px 5px;
+  }
 }
 
 .canvas-container.show-grid:before {
