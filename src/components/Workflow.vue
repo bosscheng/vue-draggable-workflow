@@ -47,7 +47,12 @@
         </div>
       </div>
       <!--    canvas   -->
-      <div class="canvas-container" :class="{'show-grid':toggleGridLine}" :data-zoom="canvasDataRoom">
+      <div class="canvas-container"
+           :style="canvasRoomCursorStyle"
+           :class="{'show-grid':toggleGridLine}"
+           @mousemove="handleCanvasMouseMove"
+           @mousedown="handleCanvasMouseDown"
+           :data-zoom="canvasDataRoom">
         <div id="campaignCanvas" :style="canvasRoomScaleStyle" ref="campaignCanvas">
           <template v-for="(flowItem,index) in flowList">
             <div class="node-content-wrap"
@@ -212,7 +217,7 @@
 import JSONFormatter from 'json-formatter-js';
 import Draggable from './Draggable';
 import {FLOW_ITEM_TYPE, FLOW_ALL_LIST, FLOW_LIST, FLOW_TYPE} from "../constant";
-import {clone, uuid} from "../utils";
+import {clone, getMousePosition, uuid} from "../utils";
 import {addClass, removeClass, getWidth} from '../utils/dom';
 import ListForm from './listForm';
 import StartNodeForm from './startNodeForm';
@@ -274,10 +279,21 @@ export default {
       movingFlowItem: undefined, // moving
       movedFlowItem: undefined, //  moved
       canvasDataRoom: 100,
+      canvasDataCursor: 'grab',
+      canvasData: {
+        left: 0,
+        top: 0,
+      },
       toggleGridLine: true,
       toggleAutoSort: true,
       canUndo: false,
       tempLayerMap: [],
+      //
+      tempMouse: {
+        x: 0,
+        y: 0,
+        dragging: false
+      }
     }
   },
   components: {
@@ -296,6 +312,11 @@ export default {
     } else {
       this.initFlow();
     }
+    // window.addEventListener("dragstart", (e) => {
+    //   e.preventDefault();
+    //   e.stopPropagation();
+    // });
+    window.addEventListener('mouseup', this.handleCanvasMouseUp)
   },
   computed: {
     dialogFlowItemComponent() {
@@ -309,8 +330,15 @@ export default {
     },
     canvasRoomScaleStyle() {
       return {
-        transform: 'scale(' + this.canvasDataRoom / 100 + ')'
+        transform: 'scale(' + this.canvasDataRoom / 100 + ')',
+        left: this.canvasData.left + 'px',
+        top: this.canvasData.top + 'px'
       };
+    },
+    canvasRoomCursorStyle() {
+      return {
+        cursor: this.tempMouse.dragging ? "grabbing" : 'grab'
+      }
     },
     toggleGridLineClass() {
       return this.toggleGridLine ? 'icon-wangge-open' : 'icon-wangge-close';
@@ -1701,6 +1729,34 @@ export default {
 
     },
 
+    handleCanvasMouseDown(event) {
+      const {posX, posY} = getMousePosition(event);
+      this.tempMouse.x = posX;
+      this.tempMouse.y = posY;
+      this.tempMouse.dragging = true;
+    },
+    handleCanvasMouseUp(event) {
+      if (this.tempMouse.dragging) {
+        this.tempMouse = {
+          x: 0,
+          y: 0,
+          dragging: false
+        };
+      }
+    },
+    handleCanvasMouseMove(event) {
+      if (this.tempMouse.dragging) {
+        const {posX, posY} = getMousePosition(event);
+        const tempX = this.tempMouse.x - posX;
+        const tempY = this.tempMouse.y - posY;
+        this.canvasData.left = this.canvasData.left - tempX;
+        this.canvasData.top = this.canvasData.top - tempY;
+        this.tempMouse.x = posX;
+        this.tempMouse.y = posY;
+      }
+    },
+
+
     handleSort() {
       this.$_updatePosition();
     },
@@ -1971,6 +2027,9 @@ export default {
     isHasStepCountFlowItem(flowItem) {
       return flowItem.groupType === FLOW_TYPE.action || flowItem.type === FLOW_ITEM_TYPE.startNode;
     }
+  },
+  beforeDestroy() {
+    window.removeEventListener('mouseup', this.handleCanvasMouseUp)
   }
 }
 </script>

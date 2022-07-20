@@ -26,3 +26,20 @@ export function clone(obj) {
 
     return result;
 }
+
+export function getMousePosition(event){
+    let posX = 0;
+    let posY = 0;
+    const e = event || window.event;  //标准化事件对象
+    if (e.pageX || e.pageY) {  //获取鼠标指针的当前坐标值
+        posX = e.pageX;
+        posY = e.pageY;
+    } else if (e.clientX || e.clientY) {
+        posX = event.clientX + document.documentElement.scrollLeft + document.body.scrollLeft;
+        posY = event.clientY + document.documentElement.scrollTop + document.body.scrollTop;
+    }
+    return {
+        posX,
+        posY
+    }
+}
